@@ -2,6 +2,7 @@ module ResetBootSystem #(
     parameter CYCLES = 20
 ) (
     input wire clk,
+    input wire start,
     output reg reset_o,
     output wire resetn_o
 );
@@ -22,6 +23,10 @@ initial begin
 end
 
 always @(posedge clk ) begin
+    if(start <= 1'b1) begin
+        state <= INIT;
+    end
+    
     case (state)
         INIT: begin
             reset_o <= 1'b1;

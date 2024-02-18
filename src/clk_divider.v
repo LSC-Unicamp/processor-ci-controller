@@ -18,9 +18,11 @@ reg [COUNTER_BITS - 1:0] clk_counter;
 reg [PULSE_BITS - 1:0] pulse_counter;
 
 assign clk_o = (out_enable == 1'b1) ? (option == 1'b0) ? 
-    clk_o_pulse : clk_o_auto : 1'b0;
+    clk_o_pulse : clk_o_auto : 1'b0; // multiplexador da saida
 
-assign clk_o_pulse = (pulse_counter != 32'd0) ? clk : 1'b0;
+assign clk_o_pulse = (pulse_counter != 32'd0) 
+                    ? clk : 1'b0; // liga a saida ao clock enquanto o 
+                                // contador de pulsos for maior do que 0
 
 initial begin
     clk_counter = 32'd0;
@@ -33,17 +35,17 @@ always @(posedge clk ) begin
         clk_counter <= 32'd0;
         clk_o_auto <= 32'd0;
     end else begin
-        if(clk_counter == 0) begin
+        if(clk_counter == 0) begin // Gera a parte alta do ciclo de clock de saida
             clk_o_auto <= 1'b1;
             clk_counter <= clk_counter + 1'b1;
-        end else if(clk_counter == divider /2) begin 
+        end else if(clk_counter == divider /2) begin // Inverte a saida do clock para a parte baixa
             clk_o_auto <= 1'b0;
             clk_counter <= clk_counter + 1'b1;
         end else begin
-            clk_counter <= clk_counter + 1'b1;
+            clk_counter <= clk_counter + 1'b1; // inclementa o contador
         end
 
-        if(clk_counter >= divider - 1) begin
+        if(clk_counter >= divider - 1) begin // para o caso em especifico em que a divisão e por 2
             clk_counter <= 32'd0;
         end
     end
