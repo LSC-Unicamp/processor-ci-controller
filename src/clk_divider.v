@@ -61,9 +61,7 @@ always @(posedge clk ) begin
 
         if(pulse_counter > 32'd0) begin
             pulse_counter <= pulse_counter - 1'b1;
-        end else begin
-            pulse_counter <= 32'd0;
-        end 
+        end
     end
 end
 

@@ -19,12 +19,12 @@ initial begin
     pulse = 32'd0;
     divider = 32'd0;
     write_pulse = 1'b0;
-    /*
+
     #2
     reset = 1'b1;
     #2
     reset = 1'b0;
-    */
+
     #30
     
     out_enable = 1'b0;
@@ -32,6 +32,21 @@ initial begin
     #30
 
     out_enable = 1'b1;
+
+    #30
+
+    pulse = 32'd8;
+
+    #16
+
+    write_pulse = 1'b1;
+
+    #2
+
+    write_pulse = 1'b0;
+
+    #2
+
 
     #40
 
