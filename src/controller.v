@@ -14,7 +14,7 @@ module Controller #(
     output wire memory_write_memory,
     output wire [31:0] address_memory,
     output wire [31:0] write_data_memory,
-    input wire [31:0]read_data,
+    input wire [31:0]read_data_memory,
 
     //RISC-V FORMAL INTERFACE(RVFI)
     
