@@ -13,26 +13,27 @@ module Interpreter #(
 );
 
 
-localparam IDLE = 4'b0000;
-localparam ESCREVER_UART = 4'b0001;
-localparam RESET_PROCESSADOR = 4'b0010;
-localparam LER_RESULTADO_ALU = 4'b0011;
-localparam LER_REGISTRADOR = 4'b0100;
-localparam ESCREVER_REGISTRADOR = 4'b0101;
-localparam LER_MEMORIA = 4'b0110;
-localparam ESCREVER_MEMORIA = 4'b0111;
-localparam PULSO_CLOCK = 4'b1000
-localparam DECODE_UART = 4'b1001
+localparam IDLE                   = 4'b0000;
+localparam ESCREVER_UART          = 4'b0001;
+localparam RESET_PROCESSADOR      = 4'b0010;
+localparam LER_RESULTADO_ALU      = 4'b0011;
+localparam LER_REGISTRADOR        = 4'b0100;
+localparam ESCREVER_REGISTRADOR   = 4'b0101;
+localparam LER_MEMORIA            = 4'b0110;
+localparam ESCREVER_MEMORIA       = 4'b0111;
+localparam PULSO_CLOCK            = 4'b1000
+localparam DECODE_UART            = 4'b1001
 // acelerar e desacelerar o cock da placa???
 
 reg [4:0] current_state;
+reg [3:0] timer;
 
-reg [7:0] _uart_in;
-
+reg [31:0] _uart_in;
 
 
 initial begin
     current_state = IDLE;
+    timer = 0;
 end
 
 
@@ -48,7 +49,6 @@ always @(posedge clk) begin
 
             IDLE: begin
                 if(uart_data) begin
-                    _uart_in <= uart_in;
                     current_state <= DECODE_UART;
                 end
                 else begin
@@ -88,8 +88,20 @@ always @(posedge clk) begin
 
             end
 
+            // recebe 32 bits da UART pra decodificar
             DECODE_UART: begin
-            
+                if(time == 4) begin
+                    // decodificar os dados da UART aqui agr?
+
+                    // alterar o current_state baseado nos dados decodificados?
+                    current_state <= IDLE;
+                    timer <= 0;
+                end
+                else begin
+                    // concatena a entrada da uart com a anterior até completar 32 bits
+                    _uart_in <= {_uart_in, uart_in};
+                    timer <= timer + 1;
+                end
             end
             
             default: begin
@@ -142,7 +154,8 @@ always @(current_state) begin
         end
 
         DECODE_UART: begin
-            
+            // acho que aqui, nenhuma saída vai ser modificada, então n precisa colodar nada se pá
+            // talvez só zerar as saídas pra garantir q nada vai bugar
         end
         
         default: begin
