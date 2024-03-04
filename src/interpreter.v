@@ -4,12 +4,25 @@ module Interpreter #(
     input wire clk,
     input wire reset,
 
+    // inputs/sinais provenientes do processador
+    input [31:0] processor_alu_result,
+    input [31:0] processor_reg_data,
+
     input wire uart_data,
     input wire [7:0] uart_in,
     
     output reg uart_clean_buffer,
     output reg write_uart,
-    output reg [7:0] uart_out
+    output reg [7:0] uart_out,
+
+    // outputs de sinais de controle pro processador 
+
+    // outputs/sinais que irão para o processador
+    output reg processor_reset,
+    output reg [4:0] processor_reg_number,
+    output reg [31:0] processor_reg_write_data,
+
+
 );
 
 
@@ -21,14 +34,13 @@ localparam LER_REGISTRADOR        = 4'b0100;
 localparam ESCREVER_REGISTRADOR   = 4'b0101;
 localparam LER_MEMORIA            = 4'b0110;
 localparam ESCREVER_MEMORIA       = 4'b0111;
-localparam PULSO_CLOCK            = 4'b1000
-localparam DECODE_UART            = 4'b1001
+localparam PULSO_CLOCK            = 4'b1000;
 // acelerar e desacelerar o cock da placa???
 
 reg [4:0] current_state;
 reg [3:0] timer;
 
-reg [31:0] _uart_in;
+reg [64:0] _uart_in;
 
 
 initial begin
@@ -49,7 +61,7 @@ always @(posedge clk) begin
 
             IDLE: begin
                 if(uart_data) begin
-                    current_state <= DECODE_UART;
+                    current_state <= IDLE;
                 end
                 else begin
                     current_state <= IDLE;
