@@ -4,6 +4,10 @@ module Controller #(
     input wire clk,
     input wire reset,
 
+    // saida para serial
+    input wire rx,
+    output wire tx,
+
     //saída de clock para o core, reset, endereço de memória, 
     //barramento de leitura e escrita entre outros.
     output wire clk_core,
