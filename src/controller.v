@@ -1,5 +1,8 @@
 module Controller #(
-    parameter CLK_FREQ = 25000000
+    parameter CLK_FREQ = 25000000,
+    parameter BIT_RATE =   9600,
+    parameter PAYLOAD_BITS = 8,
+    parameter BUFFER_SIZE = 8
 ) (
     input wire clk,
     input wire reset,
@@ -114,8 +117,8 @@ ClkDivider #(
     .COUNTER_BITS(32),
     .PULSE_BITS(32)
 ) ClkDivider(
-    .clk(),
-    .reset(),
+    .clk(clk),
+    .reset(reset),
     .write_pulse(),
     .option(), // 0 - pulse, 1 - auto
     .out_enable(), // 0 not, 1 - yes
@@ -128,7 +131,20 @@ Interpreter #(
     .CLK_FREQ(CLK_FREQ)
 ) Interpreter(
     .clk(clk),
-    .reset(reset)
+    .reset(reset),
+    .processor_alu_result(),
+    .processor_reg_data(),
+    .uart_rx_empty(rx_fifo_empty),
+    .uart_tx_empty(tx_fifo_empty),
+    .uart_rx_full(rx_fifo_full),
+    .uart_tx_full(tx_fifo_full),
+    .uart_in(rx_fifo_read_data),
+    .write_uart(tx_fifo_write),
+    .read_uart(rx_fifo_read),
+    .uart_out(tx_fifo_write),
+    .processor_reset(reset_core),
+    .processor_reg_number(),
+    .processor_reg_write_data()
 );
 
 FIFO #(
@@ -163,7 +179,7 @@ FIFO #(
 uart_tool_rx #(
     .BIT_RATE(BIT_RATE),
     .PAYLOAD_BITS(PAYLOAD_BITS),
-    .CLK_HZ  (CLOCK_FREQ  )
+    .CLK_HZ(CLK_FREQ)
 ) i_uart_rx(
     .clk          (clk          ), // Top level system clock input.
     .resetn       (~reset           ), // Asynchronous active low reset.
@@ -180,7 +196,7 @@ uart_tool_rx #(
 uart_tool_tx #(
     .BIT_RATE(BIT_RATE),
     .PAYLOAD_BITS(PAYLOAD_BITS),
-    .CLK_HZ  (CLOCK_FREQ  )
+    .CLK_HZ(CLK_FREQ)
 ) i_uart_tx(
     .clk          (clk          ),
     .resetn       (~reset             ),

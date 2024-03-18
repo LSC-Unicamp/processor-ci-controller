@@ -8,11 +8,14 @@ module Interpreter #(
     input [31:0] processor_alu_result,
     input [31:0] processor_reg_data,
 
-    input wire uart_data,
+    input wire uart_rx_empty,
+    input wire uart_tx_empty,
+    input wire uart_rx_full,
+    input wire uart_tx_full,
     input wire [7:0] uart_in,
     
-    output reg uart_clean_buffer,
     output reg write_uart,
+    output reg read_uart,
     output reg [7:0] uart_out,
 
     // outputs de sinais de controle pro processador 
@@ -35,6 +38,7 @@ localparam ESCREVER_REGISTRADOR   = 4'b0101;
 localparam LER_MEMORIA            = 4'b0110;
 localparam ESCREVER_MEMORIA       = 4'b0111;
 localparam PULSO_CLOCK            = 4'b1000;
+localparam DECODE_UART            = 4'b1001;
 // acelerar e desacelerar o cock da placa???
 
 reg [4:0] current_state;
