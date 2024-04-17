@@ -23,7 +23,7 @@ initial begin
 end
 
 always @(posedge clk ) begin
-    if(start <= 1'b1) begin
+    if(start == 1'b1) begin
         state <= INIT;
     end
     

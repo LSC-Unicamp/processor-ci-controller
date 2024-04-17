@@ -39,12 +39,12 @@ localparam LER_MEMORIA            = 4'b0110;
 localparam ESCREVER_MEMORIA       = 4'b0111;
 localparam PULSO_CLOCK            = 4'b1000;
 localparam DECODE_UART            = 4'b1001;
-// acelerar e desacelerar o cock da placa???
+// acelerar e desacelerar o clock da placa???
 
-reg [4:0] current_state;
+reg [3:0] current_state;
 reg [3:0] timer;
 
-reg [64:0] _uart_in;
+reg [63:0] _uart_in;
 
 
 initial begin
@@ -56,7 +56,7 @@ end
 // Cuidar da mudança de estados
 always @(posedge clk) begin
     if(reset == 1) begin
-        current_state = IDLE;
+        current_state <= IDLE;
     end
 
     else begin
@@ -64,8 +64,8 @@ always @(posedge clk) begin
         case(current_state) 
 
             IDLE: begin
-                if(uart_data) begin
-                    current_state <= IDLE;
+                if(uart_rx_empty == 1'b0) begin
+                    current_state <= DECODE_UART;
                 end
                 else begin
                     current_state <= IDLE;
@@ -106,7 +106,7 @@ always @(posedge clk) begin
 
             // recebe 32 bits da UART pra decodificar
             DECODE_UART: begin
-                if(time == 4) begin
+                if(timer == 4'd4) begin
                     // decodificar os dados da UART aqui agr?
 
                     // alterar o current_state baseado nos dados decodificados?
