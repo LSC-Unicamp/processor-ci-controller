@@ -1,5 +1,6 @@
 module Interpreter #(
-    parameter CLK_FREQ = 25000000
+    parameter CLK_FREQ = 25000000,
+    parameter PULSE_BITS = 32
 ) (
     input wire clk,
     input wire reset,
@@ -25,7 +26,10 @@ module Interpreter #(
     output reg [4:0] processor_reg_number,
     output reg [31:0] processor_reg_write_data,
 
-
+    // outputs/sinais de controle para o controller
+    output reg clk_enable,
+    output wire [PULSE_BITS-1:0] num_pulses,
+    output reg write_pulse
 );
 
 
@@ -37,32 +41,36 @@ localparam LER_REGISTRADOR        = 4'b0100;
 localparam ESCREVER_REGISTRADOR   = 4'b0101;
 localparam LER_MEMORIA            = 4'b0110;
 localparam ESCREVER_MEMORIA       = 4'b0111;
-localparam PULSO_CLOCK            = 4'b1000;
-localparam DECODE_UART            = 4'b1001;
+localparam PARAR_CLOCK            = 4'b1000;
+localparam INICIAR_CLOCK          = 4'b1001;
+localparam PULSO_CLOCK            = 4'b1010;
+localparam DECODE_UART            = 4'b1011;
 // acelerar e desacelerar o clock da placa???
 
 reg [3:0] current_state;
 reg [3:0] timer;
 
-reg [63:0] _uart_in;
+reg [63:0] _uart_in; // [63:32] immediate para mandar pulsos de clock
 
+assign num_pulses = _uart_in[63:32];
 
 initial begin
     current_state = IDLE;
     timer = 0;
+    clk_enable = 1;
+    pulse_counter = 0;
 end
 
 
 // Cuidar da mudança de estados
 always @(posedge clk) begin
+    write_pulse <= 1'b0;
     if(reset == 1) begin
         current_state <= IDLE;
+        clk_enable <= 1'b1; // habilita o clock por default
     end
-
     else begin
-
         case(current_state) 
-
             IDLE: begin
                 if(uart_rx_empty == 1'b0) begin
                     current_state <= DECODE_UART;
@@ -100,8 +108,19 @@ always @(posedge clk) begin
                 // escreve algum valor de uma posição de memória específica
             end
 
-            PULSO_CLOCK: begin
+            PARAR_CLOCK: begin
+                // parar o clock da placa
+                current_state <= IDLE;
+            end
 
+            INICIAR_CLOCK: begin
+                // continuar o clock da placa
+                current_state <= IDLE;
+            end
+
+            PULSO_CLOCK: begin
+                // pulso de clock pra fazer o processador avançar um ciclo quando clock está parado
+                current_state <= IDLE;
             end
 
             // recebe 32 bits da UART pra decodificar
@@ -129,12 +148,13 @@ end
 
 
 
-always @(current_state) begin
-
+always @(*) begin
+    write_pulse = 1'b0;
+    clk_enable = 1'b0;
     case(current_state) 
 
         IDLE: begin
-        
+            
         end
 
         ESCREVER_UART: begin
@@ -165,17 +185,21 @@ always @(current_state) begin
 
         end
 
-        PULSO_CLOCK: begin
+        PARAR_CLOCK: begin
+            clk_enable <= 1'b0;
+        end
 
+        INICIAR_CLOCK: begin
+            clk_enable <= 1'b1;
+        end
+
+        PULSO_CLOCK: begin
+            write_pulse <= 1'b1;
         end
 
         DECODE_UART: begin
             // acho que aqui, nenhuma saída vai ser modificada, então n precisa colodar nada se pá
             // talvez só zerar as saídas pra garantir q nada vai bugar
-        end
-        
-        default: begin
-            // zerar só saida
         end
     endcase 
 end

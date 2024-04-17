@@ -2,7 +2,8 @@ module Controller #(
     parameter CLK_FREQ = 25000000,
     parameter BIT_RATE =   9600,
     parameter PAYLOAD_BITS = 8,
-    parameter BUFFER_SIZE = 8
+    parameter BUFFER_SIZE = 8,
+    parameter PULSE_BITS = 32
 ) (
     input wire clk,
     input wire reset,
@@ -52,14 +53,15 @@ module Controller #(
     input wire [ 3:0] rvfi_mem_rmask,
     input wire [ 3:0] rvfi_mem_wmask,
     input wire [31:0] rvfi_mem_rdata,
-    input wire [31:0] rvfi_mem_wd
+    input wire [31:0] rvfi_mem_wd,
 );
 
 
 wire [PAYLOAD_BITS-1:0]  uart_rx_data, tx_fifo_read_data, 
     rx_fifo_read_data;
 wire uart_rx_valid, uart_rx_break, uart_tx_busy, tx_fifo_empty,
-    rx_fifo_empty, tx_fifo_full, rx_fifo_full;
+    rx_fifo_empty, tx_fifo_full, rx_fifo_full, clk_enable, write_pulse;
+wire [PULSE_BITS-1:0] num_pulses;
 reg uart_tx_en, tx_fifo_read, tx_fifo_write, rx_fifo_read, 
     rx_fifo_write, buffer_full;
 reg [PAYLOAD_BITS-1:0] uart_tx_data, tx_fifo_write_data, 
@@ -76,6 +78,7 @@ initial begin
     tx_fifo_write_data = 8'h00;
     rx_fifo_write_data = 8'h00;
     read_buffer = 8'h00;
+    clk_enable = 1'b0;
 end
 
 always @(posedge clk) begin
@@ -91,6 +94,7 @@ always @(posedge clk) begin
         uart_tx_data <= 8'h00;
         tx_fifo_write_data <= 8'h00;
         rx_fifo_write_data <= 8'h00;
+        clk_enable <= 1'b0;
     end else begin
         if(uart_tx_busy == 1'b0 && tx_fifo_empty == 1'b0) begin
             uart_tx_en <= 1'b1;
@@ -115,20 +119,21 @@ ResetBootSystem #(
 
 ClkDivider #(
     .COUNTER_BITS(32),
-    .PULSE_BITS(32)
+    .PULSE_BITS(PULSE_BITS)
 ) ClkDivider(
     .clk(clk),
     .reset(reset),
-    .write_pulse(),
-    .option(), // 0 - pulse, 1 - auto
-    .out_enable(), // 0 not, 1 - yes
+    .write_pulse(write_pulse),
+    .option(0), // 0 - pulse, 1 - auto
+    .out_enable(clk_enable), // 0 not, 1 - yes
     .divider(),
-    .pulse(),
+    .pulse(num_pulses),
     .clk_o(clk_core)
 );
 
 Interpreter #(
-    .CLK_FREQ(CLK_FREQ)
+    .CLK_FREQ(CLK_FREQ),
+    .PULSE_BITS(PULSE_BITS)
 ) Interpreter(
     .clk(clk),
     .reset(reset),
@@ -144,7 +149,10 @@ Interpreter #(
     .uart_out(tx_fifo_write),
     .processor_reset(reset_core),
     .processor_reg_number(),
-    .processor_reg_write_data()
+    .processor_reg_write_data(),
+    .clk_enable(clk_enable),
+    .num_pulses(num_pulses),
+    .write_pulse(write_pulse)
 );
 
 FIFO #(
