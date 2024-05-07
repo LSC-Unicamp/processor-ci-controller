@@ -3,7 +3,7 @@ module Controller #(
     parameter BIT_RATE =   9600,
     parameter PAYLOAD_BITS = 8,
     parameter BUFFER_SIZE = 8,
-    parameter PULSE_BITS = 32
+    parameter PULSE_BITS = 12
 ) (
     input wire clk,
     input wire reset,

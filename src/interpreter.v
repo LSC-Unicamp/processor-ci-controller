@@ -1,6 +1,6 @@
 module Interpreter #(
     parameter CLK_FREQ = 25000000,
-    parameter PULSE_BITS = 32
+    parameter PULSE_BITS = 12
 ) (
     input wire clk,
     input wire reset,
@@ -50,9 +50,9 @@ localparam DECODE_UART            = 4'b1011;
 reg [3:0] current_state;
 reg [3:0] timer;
 
-reg [63:0] _uart_in; // [63:32] immediate para mandar pulsos de clock
+reg [31:0] _uart_in; // [63:32] immediate para mandar pulsos de clock
 
-assign num_pulses = _uart_in[63:32];
+assign num_pulses = _uart_in[31:20];
 
 initial begin
     current_state = IDLE;
