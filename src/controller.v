@@ -105,7 +105,7 @@ always @(posedge clk) begin
         if(rx_fifo_full == 1'b0 && uart_rx_valid == 1'b1) begin
             rx_fifo_write_data <= uart_rx_data;
             rx_fifo_write <= 1'b1;
-        end
+        end 
     end
 end
 
