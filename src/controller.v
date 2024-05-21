@@ -1,9 +1,10 @@
 module Controller #(
-    parameter CLK_FREQ = 25000000,
-    parameter BIT_RATE =   9600,
-    parameter PAYLOAD_BITS = 8,
-    parameter BUFFER_SIZE = 8,
-    parameter PULSE_BITS = 12
+    parameter CLK_FREQ           = 25000000,
+    parameter BIT_RATE           = 9600,
+    parameter PAYLOAD_BITS       = 8,
+    parameter BUFFER_SIZE        = 8,
+    parameter PULSE_CONTROL_BITS = 12,
+    parameter BUS_WIDTH          = 32
 ) (
     input wire clk,
     input wire reset,
@@ -15,14 +16,13 @@ module Controller #(
     //saída de clock para o core, reset, endereço de memória, 
     //barramento de leitura e escrita entre outros.
     output wire clk_core,
-
     output wire reset_core,
 
-    input wire memory_read_memory,
-    input wire memory_write_memory,
+    input wire read_memory,
+    input wire write_memory,
     input wire [31:0] address_memory,
     input wire [31:0] write_data_memory,
-    output wire [31:0]read_data_memory,
+    output wire [31:0] read_data_memory,
 
     //RISC-V FORMAL INTERFACE(RVFI)
     
@@ -56,59 +56,13 @@ module Controller #(
     input wire [31:0] rvfi_mem_wd,
 );
 
-
-wire [PAYLOAD_BITS-1:0]  uart_rx_data, tx_fifo_read_data, 
-    rx_fifo_read_data;
-wire uart_rx_valid, uart_rx_break, uart_tx_busy, tx_fifo_empty,
-    rx_fifo_empty, tx_fifo_full, rx_fifo_full, clk_enable, write_pulse;
-wire [PULSE_BITS-1:0] num_pulses;
-reg uart_tx_en, tx_fifo_read, tx_fifo_write, rx_fifo_read, 
-    rx_fifo_write, buffer_full;
-reg [PAYLOAD_BITS-1:0] uart_tx_data, tx_fifo_write_data, 
-    rx_fifo_write_data, read_buffer;
+wire write_pulse, clk_enable, uart_read, uart_write, uart_response;
+wire [31:0] uart_read_data, uart_write_data;
+wire [PULSE_CONTROL_BITS-1:0] num_pulses;
 
 initial begin
-    buffer_full = 1'b0;
-    uart_tx_en = 1'b0;
-    tx_fifo_read = 1'b0;
-    tx_fifo_write = 1'b0;
-    rx_fifo_read = 1'b0;
-    rx_fifo_write = 1'b0;
-    uart_tx_data = 8'h00;
-    tx_fifo_write_data = 8'h00;
-    rx_fifo_write_data = 8'h00;
-    read_buffer = 8'h00;
-    clk_enable = 1'b0;
+
 end
-
-always @(posedge clk) begin
-    uart_tx_en <= 1'b0;
-    tx_fifo_read <= 1'b0;
-    tx_fifo_write <= 1'b0;
-    rx_fifo_read <= 1'b0;
-    rx_fifo_write <= 1'b0;
-
-    if(reset == 1'b1) begin
-        read_buffer <= 8'h00;
-        buffer_full <= 1'b0;
-        uart_tx_data <= 8'h00;
-        tx_fifo_write_data <= 8'h00;
-        rx_fifo_write_data <= 8'h00;
-        clk_enable <= 1'b0;
-    end else begin
-        if(uart_tx_busy == 1'b0 && tx_fifo_empty == 1'b0) begin
-            uart_tx_en <= 1'b1;
-            uart_tx_data <= tx_fifo_read_data;
-            tx_fifo_read <= 1'b1;
-        end
-
-        if(rx_fifo_full == 1'b0 && uart_rx_valid == 1'b1) begin
-            rx_fifo_write_data <= uart_rx_data;
-            rx_fifo_write <= 1'b1;
-        end 
-    end
-end
-
 
 ResetBootSystem #(
     .CYCLES(20)
@@ -119,7 +73,7 @@ ResetBootSystem #(
 
 ClkDivider #(
     .COUNTER_BITS(32),
-    .PULSE_BITS(PULSE_BITS)
+    .PULSE_CONTROL_BITS(PULSE_CONTROL_BITS)
 ) ClkDivider(
     .clk(clk),
     .reset(reset),
@@ -133,85 +87,53 @@ ClkDivider #(
 
 Interpreter #(
     .CLK_FREQ(CLK_FREQ),
-    .PULSE_BITS(PULSE_BITS)
+    .NUM_PAGES(17),
+    .PULSE_CONTROL_BITS(PULSE_CONTROL_BITS),
+    .BUS_WIDTH(BUS_WIDTH),
 ) Interpreter(
     .clk(clk),
     .reset(reset),
-    .processor_alu_result(),
-    .processor_reg_data(),
-    .uart_rx_empty(rx_fifo_empty),
-    .uart_tx_empty(tx_fifo_empty),
-    .uart_rx_full(rx_fifo_full),
-    .uart_tx_full(tx_fifo_full),
-    .uart_in(rx_fifo_read_data),
-    .write_uart(tx_fifo_write),
-    .read_uart(rx_fifo_read),
-    .uart_out(tx_fifo_write),
-    .processor_reset(reset_core),
-    .processor_reg_number(),
-    .processor_reg_write_data(),
-    .clk_enable(clk_enable),
-    .num_pulses(num_pulses),
-    .write_pulse(write_pulse)
+    // uart control signal
+    .uart_read(uart_read),
+    .uart_write(uart_write),
+    .uart_response(uart_response),
+    // uart data signal
+    .uart_read_data(uart_read_data),
+    .uart_write_data(uart_write_data),
+    // core signals
+    .core_clk_enable(clk_enable),
+    .core_reset(reset_core),
+    .num_of_cycles_to_pulse(num_pulses),
+    .write_pulse(write_pulse),
+    // memory bus signal
+    .memory_read(),
+    .memory_write(),
+    .memory_mux_selector(),
+    .memory_page_number(),
+    .write_data(),
+    .address(),
+    .read_data()
 );
 
-FIFO #(
-    .DEPTH(BUFFER_SIZE),
-    .WIDTH(PAYLOAD_BITS)
-) TX_FIFO (
-    .clk(clk),
-    .reset(reset),
-    .write(tx_fifo_write),
-    .read(tx_fifo_read),
-    .write_data(tx_fifo_write_data),
-    .full(tx_fifo_full),
-    .empty(tx_fifo_empty),
-    .read_data(tx_fifo_read_data)
-);
-
-FIFO #(
-    .DEPTH(BUFFER_SIZE),
-    .WIDTH(PAYLOAD_BITS)
-) RX_FIFO (
-    .clk(clk),
-    .reset(reset),
-    .write(rx_fifo_write),
-    .read(rx_fifo_read),
-    .write_data(rx_fifo_write_data),
-    .full(rx_fifo_full),
-    .empty(rx_fifo_empty),
-    .read_data(rx_fifo_read_data)
-);
-
-// UART RX
-uart_tool_rx #(
+UART #(
+    .CLK_FREQ(CLK_FREQ),
     .BIT_RATE(BIT_RATE),
     .PAYLOAD_BITS(PAYLOAD_BITS),
-    .CLK_HZ(CLK_FREQ)
-) i_uart_rx(
-    .clk          (clk          ), // Top level system clock input.
-    .resetn       (~reset           ), // Asynchronous active low reset.
-    .uart_rxd     (rx    ), // UART Recieve pin.
-    .uart_rx_en   (1'b1         ), // Recieve enable
-    .uart_rx_break(uart_rx_break), // Did we get a BREAK message?
-    .uart_rx_valid(uart_rx_valid), // Valid data recieved and available.
-    .uart_rx_data (uart_rx_data )  // The recieved data.
-);
+    .BUFFER_SIZE(BUFFER_SIZE),
+    .WORD_SIZE_BY(4)
+) Uart(
+    .clk(clk),
+    .reset(reset),
 
-//
-// UART Transmitter module.
-//
-uart_tool_tx #(
-    .BIT_RATE(BIT_RATE),
-    .PAYLOAD_BITS(PAYLOAD_BITS),
-    .CLK_HZ(CLK_FREQ)
-) i_uart_tx(
-    .clk          (clk          ),
-    .resetn       (~reset             ),
-    .uart_txd     (tx    ), // serial_tx
-    .uart_tx_en   (uart_tx_en   ),
-    .uart_tx_busy (uart_tx_busy ),
-    .uart_tx_data (uart_tx_data ) 
+    .rx(rx),
+    .tx(tx),
+
+    .read(uart_read),
+    .write(uart_write),
+    .response(uart_response),
+
+    .write_data(uart_write_data),
+    .read_data(uart_read_data)
 );
     
 endmodule
