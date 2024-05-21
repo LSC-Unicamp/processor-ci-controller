@@ -1,207 +1,116 @@
 module Interpreter #(
-    parameter CLK_FREQ = 25000000,
-    parameter PULSE_BITS = 12
+    parameter CLOCK_FEQ = 25000000,
+    parameter NUM_PAGES = 17,
+    parameter PULSE_CONTROL_BITS = 32,
+    parameter BUS_WIDTH = 32
 ) (
+    //  Control signals
     input wire clk,
     input wire reset,
 
-    // inputs/sinais provenientes do processador
-    input [31:0] processor_alu_result,
-    input [31:0] processor_reg_data,
+    // UART 
+    output reg uart_read,
+    output reg uart_write,
+    input wire uart_response,
 
-    input wire uart_rx_empty,
-    input wire uart_tx_empty,
-    input wire uart_rx_full,
-    input wire uart_tx_full,
-    input wire [7:0] uart_in,
-    
-    output reg write_uart,
-    output reg read_uart,
-    output reg [7:0] uart_out,
+    input wire [31:0] uart_read_data,
+    output reg [31:0] uart_write_data,
 
-    // outputs de sinais de controle pro processador 
+    // Core signals
+    output reg core_clk_enable,
+    output reg core_reset,
+    output reg [PULSE_CONTROL_BITS - 1:0] num_of_cycles_to_pulse,
+    output reg write_pulse,
 
-    // outputs/sinais que irão para o processador
-    output reg processor_reset,
-    output reg [4:0] processor_reg_number,
-    output reg [31:0] processor_reg_write_data,
-
-    // outputs/sinais de controle para o controller
-    output reg clk_enable,
-    output wire [PULSE_BITS-1:0] num_pulses,
-    output reg write_pulse
+    // Memory BUS signal
+    output reg memory_read,
+    output reg memory_write,
+    output reg memory_mux_selector, // 0 - controler, 1 - core
+    output reg [7:0] memory_page_number,
+    output reg [BUS_WIDTH - 1:0] write_data,
+    output reg [BUS_WIDTH - 1:0] address,
+    input wire [BUS_WIDTH - 1:0] read_data
 );
 
+localparam TIMEOUT_CLK_CYCLES = 'd360;
+localparam DELAY_CYCLES = 'd30;
+localparam RESET_CLK_CYCLES = 'd20;
 
-localparam IDLE                   = 4'b0000;
-localparam ESCREVER_UART          = 4'b0001;
-localparam RESET_PROCESSADOR      = 4'b0010;
-localparam LER_RESULTADO_ALU      = 4'b0011;
-localparam LER_REGISTRADOR        = 4'b0100;
-localparam ESCREVER_REGISTRADOR   = 4'b0101;
-localparam LER_MEMORIA            = 4'b0110;
-localparam ESCREVER_MEMORIA       = 4'b0111;
-localparam PARAR_CLOCK            = 4'b1000;
-localparam INICIAR_CLOCK          = 4'b1001;
-localparam PULSO_CLOCK            = 4'b1010;
-localparam DECODE_UART            = 4'b1011;
-// acelerar e desacelerar o clock da placa???
+reg [1:0] counter;
+reg [3:0] state;
+reg [31:0] uart_buffer;
+reg [63:0] accumulator;
 
-reg [3:0] current_state;
-reg [3:0] timer;
-
-reg [31:0] _uart_in; // [31:20] immediate para mandar pulsos de clock
-
-assign num_pulses = _uart_in[31:20];
+localparam IDLE = 4'b0000;
+localparam FETCH = 4'b0001;
+localparam DECODE = 4'b0010;
 
 initial begin
-    current_state = IDLE;
-    timer = 0;
-    clk_enable = 1;
-    pulse_counter = 0;
+    state = IDLE;
+    uart_buffer = 32'h0;
+    accumulator = 32'h0;
+    counter = 2'b00;
 end
 
-
-// Cuidar da mudança de estados
 always @(posedge clk) begin
-    write_pulse <= 1'b0;
-    if(reset == 1) begin
-        current_state <= IDLE;
-        clk_enable <= 1'b1; // habilita o clock por default
-    end
-    else begin
-        case(current_state) 
+    if(reset == 1'b1) begin
+        state <= IDLE;
+        uart_buffer <= 32'h0;
+        accumulator <= 32'h0;
+        counter <= 2'b00;
+    end else begin
+        case (state)
             IDLE: begin
                 if(uart_rx_empty == 1'b0) begin
-                    current_state <= DECODE_UART;
+                    state <= FETCH;
                 end
                 else begin
-                    current_state <= IDLE;
+                    state <= IDLE;
+                end
+            end 
+
+            FETCH: begin
+                if(counter == 2'b11) begin
+                    counter <= 2'b00;
+                    state <= DECODE;
+                end else begin
+                    state <= IDLE;
                 end
             end
 
-            ESCREVER_UART: begin
-                // Escrever UART
+            DECODE: begin
+                case (uart_buffer)
+                    00: begin
+
+                    end 
+                    default: begin
+                        
+                    end
+                endcase
             end
 
-            RESET_PROCESSADOR: begin
-                // manda sinal de reset pro processador
-            end
-
-            LER_RESULTADO_ALU: begin
-                // lê o resultado da operação da ALU
-            end
-
-            LER_REGISTRADOR: begin
-                // lê o valor do RD de uma operação/de um registrador específico
-            end
-
-            ESCREVER_REGISTRADOR: begin
-                // escrever algum valor em um registrador específico
-            end
-
-            LER_MEMORIA: begin
-                // lê o valor de uma posição de memória específica
-            end
-
-            ESCREVER_MEMORIA: begin
-                // escreve algum valor de uma posição de memória específica
-            end
-
-            PARAR_CLOCK: begin
-                // parar o clock da placa
-                current_state <= IDLE;
-            end
-
-            INICIAR_CLOCK: begin
-                // continuar o clock da placa
-                current_state <= IDLE;
-            end
-
-            PULSO_CLOCK: begin
-                // pulso de clock pra fazer o processador avançar um ciclo quando clock está parado
-                current_state <= IDLE;
-            end
-
-            // recebe 32 bits da UART pra decodificar
-            DECODE_UART: begin
-                if(timer == 4'd4) begin
-                    // decodificar os dados da UART aqui agr?
-
-                    // alterar o current_state baseado nos dados decodificados?
-                    current_state <= IDLE;
-                    timer <= 0;
-                end
-                else begin
-                    // concatena a entrada da uart com a anterior até completar 32 bits
-                    _uart_in <= {_uart_in, uart_in};
-                    timer <= timer + 1;
-                end
-            end
-            
             default: begin
-                current_state <= IDLE;
+                state <= IDLE;
             end
-        endcase 
+        endcase
     end
 end
 
-
-
 always @(*) begin
-    write_pulse = 1'b0;
-    clk_enable = 1'b0;
-    case(current_state) 
-
+    case (state)
         IDLE: begin
             
         end
 
-        ESCREVER_UART: begin
-        
+        FETCH: begin
+            
+        end 
+
+        DECODE: begin
+            
         end
 
-        RESET_PROCESSADOR: begin
-
-        end
-
-        LER_RESULTADO_ALU: begin
-
-        end
-
-        LER_REGISTRADOR: begin
-
-        end
-
-        ESCREVER_REGISTRADOR: begin
-
-        end
-
-        LER_MEMORIA: begin
-
-        end
-
-        ESCREVER_MEMORIA: begin
-
-        end
-
-        PARAR_CLOCK: begin
-            clk_enable <= 1'b0;
-        end
-
-        INICIAR_CLOCK: begin
-            clk_enable <= 1'b1;
-        end
-
-        PULSO_CLOCK: begin
-            write_pulse <= 1'b1;
-        end
-
-        DECODE_UART: begin
-            // acho que aqui, nenhuma saída vai ser modificada, então n precisa colodar nada se pá
-            // talvez só zerar as saídas pra garantir q nada vai bugar
-        end
-    endcase 
+    endcase
 end
-
+    
 endmodule
