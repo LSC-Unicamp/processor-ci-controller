@@ -9,6 +9,9 @@ module Interpreter #(
     input wire reset,
 
     // UART 
+    input wire uart_rx_empty,
+    input wire uart_tx_empty,
+
     output reg uart_read,
     output reg uart_write,
     input wire uart_response,
@@ -36,7 +39,6 @@ localparam TIMEOUT_CLK_CYCLES = 'd360;
 localparam DELAY_CYCLES = 'd30;
 localparam RESET_CLK_CYCLES = 'd20;
 
-reg [1:0] counter;
 reg [3:0] state;
 reg [31:0] uart_buffer;
 reg [63:0] accumulator;
@@ -49,7 +51,6 @@ initial begin
     state = IDLE;
     uart_buffer = 32'h0;
     accumulator = 32'h0;
-    counter = 2'b00;
 end
 
 always @(posedge clk) begin
@@ -70,11 +71,10 @@ always @(posedge clk) begin
             end 
 
             FETCH: begin
-                if(counter == 2'b11) begin
-                    counter <= 2'b00;
+                if(response == 1'b1) begin
                     state <= DECODE;
                 end else begin
-                    state <= IDLE;
+                    state <= FETCH;
                 end
             end
 
@@ -97,13 +97,23 @@ always @(posedge clk) begin
 end
 
 always @(*) begin
+    uart_read       <= 1'b0;
+    uart_write      <= 1'b0;
+    core_clk_enable <= 1'b0;
+    core_reset      <= 1'b0;
+    write_pulse     <= 1'b0;
+    memory_read     <= 1'b0;
+    memory_write    <= 1'b0;
+    //memory_mux_selector = 1'b0;
+
     case (state)
         IDLE: begin
             
         end
 
         FETCH: begin
-            
+            uart_read <= 1'b1;
+            uart_buffer <= uart_read_data;
         end 
 
         DECODE: begin
