@@ -3,7 +3,7 @@ module UART #(
     parameter BIT_RATE     = 9600,
     parameter PAYLOAD_BITS = 8,
     parameter BUFFER_SIZE  = 8,
-    parameter WORD_SIZE_BY = 4
+    parameter WORD_SIZE_BY = 1
 ) (
     input wire clk,
     input wire reset,
@@ -15,6 +15,7 @@ module UART #(
     input wire write,
     output reg response,
 
+    input wire [31:0] address,
     input wire [31:0] write_data,
     output reg [31:0] read_data
 );
@@ -47,14 +48,20 @@ initial begin
     read_data          = 32'h00000000;
 end
 
-localparam IDLE              = 3'b000;
-localparam READ              = 3'b001;
-localparam WRITE             = 3'b010;
-localparam FINISH            = 3'b011;
-localparam COPY_WRITE_BUFFER = 3'b100;
+localparam IDLE               = 3'b000;
+localparam READ               = 3'b001;
+localparam WRITE              = 3'b010;
+localparam FINISH             = 3'b011;
+localparam COPY_WRITE_BUFFER  = 3'b100;
+localparam WB                 = 3'b101;
+localparam READ_RX_FIFO_EMPTY = 3'b110;
+localparam READ_TX_FIFO_EMPTY = 3'b111;
+
 
 always @(posedge clk ) begin
     response <= 1'b0;
+    rx_fifo_read <= 1'b0;
+    tx_fifo_write <= 1'b0;
 
     if(reset == 1'b1) begin
         state              <= IDLE;
@@ -71,20 +78,25 @@ always @(posedge clk ) begin
                 if(write) begin
                     state <= COPY_WRITE_BUFFER;
                 end else if(read) begin
-                    state <= READ;
+                    case (address[3:2])
+                        2'b00: state <= READ;
+                        2'b01: state <= READ_RX_FIFO_EMPTY;
+                        2'b10: state <= READ_TX_FIFO_EMPTY;
+                        default: state <= READ;
+                    endcase
                 end else begin
                     state <= IDLE;
                 end
             end 
             READ: begin
-                if(counter != (WORD_SIZE_BY - 1)) begin
+                if(counter != (WORD_SIZE_BY)) begin
                     if(rx_fifo_empty == 1'b0) begin
                        counter <= counter + 1'b1;
                        rx_fifo_read <= 1'b1;
                        read_data <= {read_data[24:0], rx_fifo_read_data};
                     end
                 end else begin
-                    state <= FINISH;
+                    state <= WB;
                 end
             end
             COPY_WRITE_BUFFER: begin
@@ -93,19 +105,33 @@ always @(posedge clk ) begin
             end
 
             WRITE: begin
-                if(counter != (WORD_SIZE_BY - 1)) begin
+                if(counter != (WORD_SIZE_BY)) begin
                     if(tx_fifo_full == 1'b0) begin
                        counter <= counter + 1'b1;
                        tx_fifo_write <= 1'b1;
-                       tx_fifo_write_data <= write_data_buffer[31:25];
-                       write_data_buffer <= {write_data_buffer[24:0], 8'h00};
+                       tx_fifo_write_data <= write_data_buffer[7:0];
+                       write_data_buffer <= {8'h00, write_data_buffer[31:8]};
                     end
                 end else begin
-                    state <= FINISH;
+                    state <= WB;
                 end
             end
-            FINISH: begin
+            READ_RX_FIFO_EMPTY: begin
+                read_data <= {31'h00000000, rx_fifo_empty};
+                state <= WB;
+            end
+
+            READ_TX_FIFO_EMPTY: begin
+                read_data <= {31'h00000000, tx_fifo_empty};
+                state <= WB;
+            end
+
+            WB: begin
                 response <= 1'b1;
+                state <= FINISH;
+            end
+
+            FINISH: begin
                 state    <= IDLE;
             end
 
@@ -117,8 +143,6 @@ end
 always @(posedge clk) begin
     uart_tx_en <= 1'b0;
     tx_fifo_read <= 1'b0;
-    tx_fifo_write <= 1'b0;
-    rx_fifo_read <= 1'b0;
     rx_fifo_write <= 1'b0;
 
     if(reset == 1'b1) begin
@@ -165,7 +189,7 @@ FIFO #(
     .read(rx_fifo_read),
     .write_data(rx_fifo_write_data),
     .full(rx_fifo_full),
-    .empty(tx_fifo_empty),
+    .empty(rx_fifo_empty),
     .read_data(rx_fifo_read_data)
 );
 
