@@ -1,6 +1,6 @@
 module ClkDivider #(
     parameter COUNTER_BITS = 32,
-    parameter PULSE_BITS = 32
+    parameter PULSE_CONTROL_BITS = 32
 )(
     input wire clk,
     input wire reset,
@@ -8,14 +8,14 @@ module ClkDivider #(
     input wire option, // 0 - pulse, 1 - auto
     input wire out_enable, // 0 not, 1 - yes
     input wire [COUNTER_BITS - 1:0] divider,
-    input wire [PULSE_BITS - 1:0] pulse,
+    input wire [PULSE_CONTROL_BITS - 1:0] pulse,
     output wire clk_o
 );
 
 wire clk_o_pulse;
 reg clk_o_auto;
 reg [COUNTER_BITS - 1:0] clk_counter;
-reg [PULSE_BITS - 1:0] pulse_counter;
+reg [PULSE_CONTROL_BITS - 1:0] pulse_counter;
 
 assign clk_o = (out_enable == 1'b1) ? (option == 1'b0) ? 
     clk_o_pulse : clk_o_auto : 1'b0; // multiplexador da saida
@@ -38,7 +38,7 @@ always @(posedge clk ) begin
         if(clk_counter == 0) begin // Gera a parte alta do ciclo de clock de saida
             clk_o_auto <= 1'b1;
             clk_counter <= clk_counter + 1'b1;
-        end else if(clk_counter == divider /2) begin // Inverte a saida do clock para a parte baixa
+        end else if(clk_counter == {1'b0, divider[COUNTER_BITS-1:1]}) begin // Inverte a saida do clock para a parte baixa
             clk_o_auto <= 1'b0;
             clk_counter <= clk_counter + 1'b1;
         end else begin
