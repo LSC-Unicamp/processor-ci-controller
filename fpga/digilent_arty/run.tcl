@@ -1,37 +1,39 @@
-open_project digilent_arty.xpr 
-set_msg_config -id {Common 17-55} -new_severity {Warning}
+read_verilog "main.v"
+read_verilog ../src/uart.v
+read_verilog ../src/uart_rx.v
+read_verilog ../src/uart_tx.v
+read_verilog ../src/fifo.v
+read_verilog ../src/reset.v
+read_verilog ../src/clk_divider.v
+read_verilog ../src/memory.v
+read_verilog ../src/interpreter.v
+read_verilog ../src/controller.v
 
-synth_design -directive default -part xc7a100tcsg324-1
 
-report_timing_summary -file report/digilent_arty_timing_synth.rpt
-report_utilization -hierarchical -file report/digilent_arty_utilization_hierarchical_synth.rpt
-report_utilization -file report/digilent_arty_utilization_synth.rpt
-write_checkpoint -force report/digilent_arty_synth.dcp
+read_xdc "digilent_arty.xdc"
 
-opt_design -directive default
+# synth
+synth_design -top "top" -part "xc7a100tcsg324-1"
 
-place_design -directive default
+# place and route
+opt_design
+place_design
 
-report_utilization -hierarchical -file report/digilent_arty_utilization_hierarchical_place.rpt
-report_utilization -file report/digilent_arty_utilization_place.rpt
-report_io -file report/digilent_arty_io.rpt
-report_control_sets -verbose -file report/digilent_arty_control_sets.rpt
-report_clock_utilization -file report/digilent_arty_clock_utilization.rpt
-write_checkpoint -force digilent_arty_place.dcp
+report_utilization -hierarchical -file digilent_arty_a7_utilization_hierarchical_place.rpt
+report_utilization -file digilent_arty_a7_utilization_place.rpt
+report_io -file digilent_arty_a7_io.rpt
+report_control_sets -verbose -file digilent_arty_a7_control_sets.rpt
+report_clock_utilization -file digilent_arty_a7_clock_utilization.rpt
 
-route_design -directive default
-phys_opt_design -directive default
-write_checkpoint -force digilent_arty_route.dcp
+route_design
 
 report_timing_summary -no_header -no_detailed_paths
-report_route_status -file report/digilent_arty_route_status.rpt
-report_drc -file report/digilent_arty_drc.rpt
-report_timing_summary -datasheet -max_paths 10 -file report/digilent_arty_timing.rpt
-report_power -file report/digilent_arty_power.rpt
-set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
+report_route_status -file digilent_arty_a7_route_status.rpt
+report_drc -file digilent_arty_a7_drc.rpt
+report_timing_summary -datasheet -max_paths 10 -file digilent_arty_a7_timing.rpt
+report_power -file digilent_arty_a7_power.rpt
 
+# write bitstream
+write_bitstream -force "./build/out.bit"
 
-write_bitstream -force digilent_arty.bit 
-write_cfgmem -force -format bin -interface spix4 -size 16 -loadbit "up 0x0 digilent_arty.bit" -file digilent_arty.bin
-
-quit
+exit

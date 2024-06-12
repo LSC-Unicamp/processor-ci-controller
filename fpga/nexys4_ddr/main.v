@@ -1,13 +1,16 @@
 module top (
     input  wire clk,
-    input  wire reset,
+    input  wire CPU_RESETN,
     input  wire rx,
     output wire tx,
-    output wire [7:0]led,
-    input  wire [5:0]gpios
+    output wire [7:0]LED,
+    input  wire [7:0]gpio
 );
 
+wire [7:0] led;
 reg clk_o;
+
+assign LED = ~led;
 
 initial begin
     clk_o = 1'b0; // 50mhz
