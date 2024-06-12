@@ -8,6 +8,9 @@ module UART #(
     input wire clk,
     input wire reset,
 
+    output wire uart_rx_empty,
+    output wire uart_tx_empty,
+
     input wire rx,
     output wire tx,
 
@@ -33,6 +36,9 @@ reg [31:0] write_data_buffer;
 
 reg [2:0] counter;
 reg [3:0] state;
+
+assign uart_rx_empty = rx_fifo_empty;
+assign uart_tx_empty = tx_fifo_empty;
 
 initial begin
     response           = 1'b0;
@@ -114,8 +120,8 @@ always @(posedge clk ) begin
                     if(tx_fifo_full == 1'b0) begin
                        counter <= counter + 1'b1;
                        tx_fifo_write <= 1'b1;
-                       tx_fifo_write_data <= write_data_buffer[7:0];
-                       write_data_buffer <= {8'h00, write_data_buffer[31:8]};
+                       tx_fifo_write_data <= write_data_buffer[31:24];
+                       write_data_buffer <= {write_data_buffer[23:0], 8'h00};
                     end
                 end else begin
                     state <= WB;

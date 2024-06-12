@@ -4,7 +4,10 @@ module Controller #(
     parameter PAYLOAD_BITS       = 8,
     parameter BUFFER_SIZE        = 8,
     parameter PULSE_CONTROL_BITS = 12,
-    parameter BUS_WIDTH          = 32
+    parameter BUS_WIDTH          = 32,
+    parameter WORD_SIZE_BY       = 4,
+    parameter ID                 = 32'h00000001,
+    parameter RESET_CLK_CYCLES   = 20
 ) (
     input wire clk,
     input wire reset,
@@ -18,58 +21,22 @@ module Controller #(
     output wire clk_core,
     output wire reset_core,
 
-    input wire read_memory,
-    input wire write_memory,
-    input wire [31:0] address_memory,
-    input wire [31:0] write_data_memory,
-    output wire [31:0] read_data_memory,
-
-    //RISC-V FORMAL INTERFACE(RVFI)
-    
-    //INSTRUCTION METADATA (check: https://github.com/YosysHQ/riscv-formal/blob/main/cores/nerv/nerv.sv)
-    input wire        rvfi_valid,
-    input wire [63:0] rvfi_order,
-    input wire [31:0] rvfi_insn,
-    input wire        rvfi_trap,
-    input wire        rvfi_halt,
-    input wire        rvfi_intr,
-    input wire [ 1:0] rvfi_mode,
-    input wire [ 1:0] rvfi_ixl,
-    
-    //INTEGER wireISTER READ/WRITE
-    input wire [ 4:0] rvfi_rs1_addr,
-    input wire [ 4:0] rvfi_rs2_addr,
-    input wire [31:0] rvfi_rs1_rdata,
-    input wire [31:0] rvfi_rs2_rdata,
-    input wire [ 4:0] rvfi_rd_addr,
-    input wire [31:0] rvfi_rd_wdata,
-
-    //PROGRAM COUNTER
-    input wire [31:0] rvfi_pc_rdata,
-    input wire [31:0] rvfi_pc_wdata,
-
-    //MEMORY ACCESS
-    input wire [31:0] rvfi_mem_addr,
-    input wire [ 3:0] rvfi_mem_rmask,
-    input wire [ 3:0] rvfi_mem_wmask,
-    input wire [31:0] rvfi_mem_rdata,
-    input wire [31:0] rvfi_mem_wd,
+    output wire core_memory_response,
+    input wire core_read_memory,
+    input wire core_write_memory,
+    input wire [31:0] core_address_memory,
+    input wire [31:0] core_write_data_memory,
+    output wire [31:0] core_read_data_memory
 );
 
-wire write_pulse, clk_enable, uart_read, uart_write, uart_response;
+wire write_pulse, clk_enable, uart_read, uart_write, uart_response,
+    uart_rx_empty, uart_tx_empty;
 wire [31:0] uart_read_data, uart_write_data;
 wire [PULSE_CONTROL_BITS-1:0] num_pulses;
 
 initial begin
 
 end
-
-ResetBootSystem #(
-    .CYCLES(20)
-) ResetBootSystem(
-    .clk(clk),
-    .reset_o(reset_o)
-);
 
 ClkDivider #(
     .COUNTER_BITS(32),
@@ -87,12 +54,16 @@ ClkDivider #(
 
 Interpreter #(
     .CLK_FREQ(CLK_FREQ),
-    .NUM_PAGES(17),
     .PULSE_CONTROL_BITS(PULSE_CONTROL_BITS),
     .BUS_WIDTH(BUS_WIDTH),
+    .ID(ID),
+    .RESET_CLK_CYCLES(RESET_CLK_CYCLES)
 ) Interpreter(
     .clk(clk),
     .reset(reset),
+    // uart buffer signal
+    .uart_rx_empty(uart_rx_empty),
+    .uart_tx_empty(uart_tx_empty),
     // uart control signal
     .uart_read(uart_read),
     .uart_write(uart_write),
@@ -106,6 +77,7 @@ Interpreter #(
     .num_of_cycles_to_pulse(num_pulses),
     .write_pulse(write_pulse),
     // memory bus signal
+    .memory_response(),
     .memory_read(),
     .memory_write(),
     .memory_mux_selector(),
@@ -120,11 +92,14 @@ UART #(
     .BIT_RATE(BIT_RATE),
     .PAYLOAD_BITS(PAYLOAD_BITS),
     .BUFFER_SIZE(BUFFER_SIZE),
-    .WORD_SIZE_BY(4)
+    .WORD_SIZE_BY(WORD_SIZE_BY)
 ) Uart(
     .clk(clk),
     .reset(reset),
 
+    .uart_rx_empty(uart_rx_empty),
+    .uart_tx_empty(uart_tx_empty),
+    
     .rx(rx),
     .tx(tx),
 
@@ -132,8 +107,22 @@ UART #(
     .write(uart_write),
     .response(uart_response),
 
+    .address(32'h00000000),
     .write_data(uart_write_data),
     .read_data(uart_read_data)
+);
+
+Memory #(
+    .MEMORY_FILE(""),
+    .MEMORY_SIZE(4096)
+) Memory(
+    .clk(clk),
+    .reset(reset),
+    .memory_read(core_read_memory),
+    .memory_write(core_write_memory),
+    .address(core_address_memory),
+    .write_data(core_write_data_memory),
+    .read_data(core_read_data_memory)
 );
     
 endmodule
