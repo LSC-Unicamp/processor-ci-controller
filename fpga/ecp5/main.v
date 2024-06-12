@@ -25,7 +25,9 @@ Controller #(
     .BUS_WIDTH(32),
     .WORD_SIZE_BY(4),
     .ID(32'h0000004A),
-    .RESET_CLK_CYCLES(20)
+    .RESET_CLK_CYCLES(20),
+    .MEMORY_FILE(""),
+    .MEMORY_SIZE(4096)
 ) Controller(
     .clk(clk),
     .reset(reset_o),
