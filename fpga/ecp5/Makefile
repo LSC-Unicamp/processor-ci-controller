@@ -13,7 +13,7 @@ all: ./build/out.bit
 ./build/out.json: main.v pinout.lpf buildFolder
 	yosys -p " \
 		read_verilog main.v; \
-		read_verilog ../src/*.v \
+		read_verilog ../../src/*.v; \
 		synth_ecp5 -json ./build/out.json -abc9 \
 	"
 

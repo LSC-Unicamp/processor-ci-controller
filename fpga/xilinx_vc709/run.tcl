@@ -1,13 +1,13 @@
 read_verilog "main.v"
-read_verilog ../src/uart.v
-read_verilog ../src/uart_rx.v
-read_verilog ../src/uart_tx.v
-read_verilog ../src/fifo.v
-read_verilog ../src/reset.v
-read_verilog ../src/clk_divider.v
-read_verilog ../src/memory.v
-read_verilog ../src/interpreter.v
-read_verilog ../src/controller.v
+read_verilog ../../src/uart.v
+read_verilog ../../src/uart_rx.v
+read_verilog ../../src/uart_tx.v
+read_verilog ../../src/fifo.v
+read_verilog ../../src/reset.v
+read_verilog ../../src/clk_divider.v
+read_verilog ../../src/memory.v
+read_verilog ../../src/interpreter.v
+read_verilog ../../src/controller.v
 
 read_xdc "pinout.xdc"
 set_property PROCESSING_ORDER EARLY [get_files pinout.xdc]
