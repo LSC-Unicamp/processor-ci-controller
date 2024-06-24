@@ -7,7 +7,9 @@ module Controller #(
     parameter BUS_WIDTH          = 32,
     parameter WORD_SIZE_BY       = 4,
     parameter ID                 = 32'h00000001,
-    parameter RESET_CLK_CYCLES   = 20
+    parameter RESET_CLK_CYCLES   = 20,
+    parameter MEMORY_FILE        = "",
+    parameter MEMORY_SIZE        = 4096
 ) (
     input wire clk,
     input wire reset,
@@ -113,8 +115,8 @@ UART #(
 );
 
 Memory #(
-    .MEMORY_FILE(""),
-    .MEMORY_SIZE(4096)
+    .MEMORY_FILE(MEMORY_FILE),
+    .MEMORY_SIZE(MEMORY_SIZE)
 ) Memory(
     .clk(clk),
     .reset(reset),

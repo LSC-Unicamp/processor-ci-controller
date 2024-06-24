@@ -11,5 +11,6 @@ clean:
 
 flash:
 	openFPGALoader -b arty_a7_100t ./build/out.bit
+# openFPGALoader -b arty_a7_100t ./build/out.bit --ftdi-serial 210319B57A9B
 
 run_all: ./build/out.bit flash
