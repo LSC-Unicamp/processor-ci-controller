@@ -49,6 +49,7 @@ localparam IDLE                                = 8'b00000000;
 localparam FETCH                               = 8'b00000001;
 localparam DECODE                              = 8'b00000010;
 localparam SEND_READ_BUFFER                    = 8'b00000011;
+localparam WAIT_WRITE_RESPONSE                 = 8'b00000100;
 localparam WRITE_CLK                           = 8'b01000011; // C
 localparam STOP_CLK                            = 8'b01010011; // S
 localparam RESUME_CLK                          = 8'b01110010; // r
@@ -95,6 +96,7 @@ always @(posedge clk) begin
                 else begin
                     state <= IDLE;
                 end
+                //state <= PING;
             end 
 
             FETCH: begin
@@ -176,11 +178,13 @@ always @(posedge clk) begin
             DEFINE_N_AS_PROGRAM_FINISH_POSITION: state <= IDLE;
             DEFINE_ACUMULATOR_AS_PROGRAM_FINISH_POSITION: state <= IDLE;
 
-            SEND_READ_BUFFER: begin
+            SEND_READ_BUFFER: state <= WAIT_WRITE_RESPONSE;
+
+            WAIT_WRITE_RESPONSE: begin
                 if(uart_response == 1'b1) begin
                     state <= IDLE;
                 end else begin
-                    state <= SEND_READ_BUFFER;
+                    state <= WAIT_WRITE_RESPONSE;
                 end
             end
 
@@ -191,7 +195,7 @@ always @(posedge clk) begin
     end
 end
 
-always @(*) begin
+always @(posedge clk) begin
     uart_read       <= 1'b0;
     uart_write      <= 1'b0;
     core_clk_enable <= 1'b0;
@@ -302,6 +306,10 @@ always @(*) begin
         SEND_READ_BUFFER: begin
             uart_write_data <= read_buffer;
             uart_write <= 1'b1;
+        end
+
+        WAIT_WRITE_RESPONSE: begin
+            
         end
 
     endcase
