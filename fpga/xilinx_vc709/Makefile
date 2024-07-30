@@ -11,6 +11,6 @@ clean:
 	rm -rf build
 
 flash:
-	$(VIVADO_PATH)vivado  -mode batch -nolog -nojournal -source flash.tcl
+	$(VIVADO_PATH)/vivado  -mode batch -nolog -nojournal -source flash.tcl
 
 run_all: ./build/out.bit flash
