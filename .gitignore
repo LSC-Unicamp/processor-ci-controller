@@ -15,3 +15,5 @@ fpga/digilent_arty/digilent_arty_place.dcp
 env/
 site/
 build/
+webtalk*.log
+webtalk*.jou

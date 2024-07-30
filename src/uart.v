@@ -221,7 +221,7 @@ uart_tool_rx #(
     .CLK_HZ(CLK_FREQ)
 ) i_uart_rx(
     .clk          (clk          ), // Top level system clock input.
-    .resetn       (~reset           ), // Asynchronous active low reset.
+    .resetn       (~reset       ), // Asynchronous active low reset.
     .uart_rxd     (rx    ), // UART Recieve pin.
     .uart_rx_en   (1'b1         ), // Recieve enable
     .uart_rx_break(uart_rx_break), // Did we get a BREAK message?
@@ -238,7 +238,7 @@ uart_tool_tx #(
     .CLK_HZ(CLK_FREQ)
 ) i_uart_tx(
     .clk          (clk          ),
-    .resetn       (~reset             ),
+    .resetn       (~reset       ),
     .uart_txd     (tx    ), // serial_tx
     .uart_tx_en   (uart_tx_en   ),
     .uart_tx_busy (uart_tx_busy ),
