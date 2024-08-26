@@ -2,12 +2,15 @@ module Interpreter #(
     parameter CLK_FREQ = 25000000,
     parameter PULSE_CONTROL_BITS = 32,
     parameter BUS_WIDTH = 32,
-    parameter ID = 32'h00000001,
+    parameter ID = 32'h0000006A,
     parameter RESET_CLK_CYCLES = 20
 ) (
     //  Control signals
     input wire clk,
     input wire reset,
+
+    // Debug
+    output reg [3:0] led,
 
     // UART 
     input wire uart_rx_empty,
@@ -15,7 +18,8 @@ module Interpreter #(
 
     output reg uart_read,
     output reg uart_write,
-    input wire uart_response,
+    input wire uart_read_response,
+    input wire uart_write_response,
 
     input wire [31:0] uart_read_data,
     output reg [31:0] uart_write_data,
@@ -78,6 +82,7 @@ initial begin
     read_buffer = 32'h0;
     timeout = 32'h0;
     accumulator = 64'h0;
+    led = 4'h0;
 end
 
 always @(posedge clk) begin
@@ -96,11 +101,10 @@ always @(posedge clk) begin
                 else begin
                     state <= IDLE;
                 end
-                //state <= PING;
             end 
 
             FETCH: begin
-                if(uart_response == 1'b1) begin
+                if(uart_read_response == 1'b1) begin
                     state <= DECODE;
                 end else begin
                     state <= FETCH;
@@ -108,6 +112,10 @@ always @(posedge clk) begin
             end
 
             DECODE: begin
+                if(uart_buffer[7:0] == 0) begin
+                    led <= 4'hF;
+                    state <= PING;
+                end else
                 case (uart_buffer[7:0])
                     WRITE_CLK: state <= WRITE_CLK;
                     STOP_CLK: state <= STOP_CLK;
@@ -173,7 +181,9 @@ always @(posedge clk) begin
                 
             end
 
-            PING: state <= SEND_READ_BUFFER;
+            PING: begin
+                state <= SEND_READ_BUFFER;
+            end
 
             DEFINE_N_AS_PROGRAM_FINISH_POSITION: state <= IDLE;
             DEFINE_ACUMULATOR_AS_PROGRAM_FINISH_POSITION: state <= IDLE;
@@ -181,7 +191,7 @@ always @(posedge clk) begin
             SEND_READ_BUFFER: state <= WAIT_WRITE_RESPONSE;
 
             WAIT_WRITE_RESPONSE: begin
-                if(uart_response == 1'b1) begin
+                if(uart_write_response == 1'b1) begin
                     state <= IDLE;
                 end else begin
                     state <= WAIT_WRITE_RESPONSE;
@@ -211,8 +221,8 @@ always @(posedge clk) begin
         end
 
         FETCH: begin
-            uart_read <= 1'b1;
             uart_buffer <= uart_read_data;
+            uart_read <= 1'b1;
         end 
 
         DECODE: begin
@@ -309,7 +319,7 @@ always @(posedge clk) begin
         end
 
         WAIT_WRITE_RESPONSE: begin
-            
+
         end
 
     endcase

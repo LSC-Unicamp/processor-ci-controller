@@ -14,6 +14,9 @@ module Controller #(
     input wire clk,
     input wire reset,
 
+    // debug
+    output wire [3:0] led,
+
     // saida para serial
     input wire rx,
     output wire tx,
@@ -31,7 +34,7 @@ module Controller #(
     output wire [31:0] core_read_data_memory
 );
 
-wire write_pulse, clk_enable, uart_read, uart_write, uart_response,
+wire write_pulse, clk_enable, uart_read, uart_write, uart_read_response, uart_write_response,
     uart_rx_empty, uart_tx_empty;
 wire [31:0] uart_read_data, uart_write_data;
 wire [PULSE_CONTROL_BITS-1:0] num_pulses;
@@ -47,7 +50,7 @@ ClkDivider #(
     .clk(clk),
     .reset(reset),
     .write_pulse(write_pulse),
-    .option(0), // 0 - pulse, 1 - auto
+    .option(1'b0), // 0 - pulse, 1 - auto
     .out_enable(clk_enable), // 0 not, 1 - yes
     .divider(),
     .pulse(num_pulses),
@@ -63,13 +66,16 @@ Interpreter #(
 ) Interpreter(
     .clk(clk),
     .reset(reset),
+    //debug
+    .led(led),
     // uart buffer signal
     .uart_rx_empty(uart_rx_empty),
     .uart_tx_empty(uart_tx_empty),
     // uart control signal
     .uart_read(uart_read),
     .uart_write(uart_write),
-    .uart_response(uart_response),
+    .uart_read_response(uart_read_response),
+    .uart_write_response(uart_write_response),
     // uart data signal
     .uart_read_data(uart_read_data),
     .uart_write_data(uart_write_data),
@@ -107,7 +113,8 @@ UART #(
 
     .read(uart_read),
     .write(uart_write),
-    .response(uart_response),
+    .read_response(uart_read_response),
+    .write_response(uart_write_response),
 
     .address(32'h00000000),
     .write_data(uart_write_data),
