@@ -57,7 +57,7 @@ always #1 clk = ~clk;
 
 ClkDivider #(
     .COUNTER_BITS(COUNTER_BITS),
-    .PULSE_BITS(PULSE_BITS)
+    .PULSE_CONTROL_BITS(PULSE_BITS)
 ) ClkDivider(
     .clk(clk),
     .reset(reset),
