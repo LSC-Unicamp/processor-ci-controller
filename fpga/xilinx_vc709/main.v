@@ -7,7 +7,7 @@ module top(
     input  wire RxD,
     output wire TxD,
     input  wire [7:0] gpio_switch,
-    output wire [7:0]led
+    output wire [7:0] led
 );
     
 reg clk_o;
@@ -46,7 +46,7 @@ Controller #(
     .BUFFER_SIZE(8),
     .PULSE_CONTROL_BITS(32),
     .BUS_WIDTH(32),
-    .WORD_SIZE_BY(4),
+    .WORD_SIZE_BY(1),
     .ID(32'h0000004A),
     .RESET_CLK_CYCLES(20),
     .MEMORY_FILE(""),
@@ -54,6 +54,8 @@ Controller #(
 ) Controller(
     .clk(clk_o),
     .reset(reset_o),
+
+    .led(led[3:0]),
 
     .tx(TxD),
     .rx(RxD),
