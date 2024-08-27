@@ -61,14 +61,11 @@ end
 
 localparam IDLE               = 4'b0000;
 localparam READ               = 4'b0001;
-localparam WRITE              = 4'b0010;
+localparam WRITE              = 4'b0001;
+localparam WB                 = 4'b0010;
 localparam FINISH             = 4'b0011;
 localparam COPY_WRITE_BUFFER  = 4'b0100;
-localparam WB                 = 4'b0101;
-localparam READ_RX_FIFO_EMPTY = 4'b0110;
-localparam READ_TX_FIFO_EMPTY = 4'b0111;
-localparam READ_RX_FIFO_FULL  = 4'b1000;
-localparam READ_TX_FIFO_FULL  = 4'b1001;
+localparam COPY_READ_BUFFER   = 4'b0100;
 
 /*
 Read state machine:
@@ -89,14 +86,7 @@ always @(posedge clk ) begin
             IDLE: begin
                 counter_read <= 3'b000;
                 if(read) begin
-                    case (address[4:2])
-                        3'b000: state_read <= READ;
-                        3'b001: state_read <= READ_RX_FIFO_EMPTY;
-                        3'b010: state_read <= READ_TX_FIFO_EMPTY;
-                        3'b011: state_read <= READ_RX_FIFO_FULL;
-                        3'b100: state_read <= READ_TX_FIFO_FULL;
-                        default: state_read <= READ;
-                    endcase
+                    state_read <= READ;
                 end else begin
                     state_read <= IDLE;
                 end
@@ -107,33 +97,16 @@ always @(posedge clk ) begin
                     if(rx_fifo_empty == 1'b0) begin
                        counter_read <= counter_read + 1'b1;
                        rx_fifo_read <= 1'b1;
-                       //read_data <= {24'h000000, rx_fifo_read_data};
-                       //read_data <= {rx_fifo_read_data, read_data[31:8]};
-                       read_data <= {read_data[23:0], rx_fifo_read_data};
+                       state_read <= COPY_READ_BUFFER;
                     end
                 end else begin
                     state_read <= WB;
                 end
             end
 
-            READ_RX_FIFO_EMPTY: begin
-                read_data <= {31'h00000000, rx_fifo_empty};
-                state_read <= WB;
-            end
-
-            READ_TX_FIFO_EMPTY: begin
-                read_data <= {31'h00000000, tx_fifo_empty};
-                state_read <= WB;
-            end
-
-            READ_RX_FIFO_FULL: begin
-                read_data <= {31'h00000000, rx_fifo_full};
-                state_read <= WB;
-            end
-
-            READ_TX_FIFO_FULL: begin
-                read_data <= {31'h00000000, tx_fifo_full};
-                state_read <= WB;
+            COPY_READ_BUFFER: begin
+                read_data <= {read_data[23:0], rx_fifo_read_data};
+                state_read <= READ;
             end
 
             WB: begin
@@ -212,27 +185,48 @@ end
 
 
 always @(posedge clk) begin
+    rx_fifo_write <= 1'b0;
+
+    if(reset == 1'b1) begin
+        rx_fifo_write_data <= 8'h00;
+        rx_fifo_write      <= 1'b0;
+    end else begin
+        if(rx_fifo_full == 1'b0 && uart_rx_valid == 1'b1) begin
+            rx_fifo_write_data <= uart_rx_data;
+            rx_fifo_write      <= 1'b1;
+        end
+    end 
+end
+
+reg tx_fifo_read_state;
+
+always @(posedge clk ) begin
     uart_tx_en <= 1'b0;
     tx_fifo_read <= 1'b0;
-    rx_fifo_write <= 1'b0;
 
     if(reset == 1'b1) begin
         uart_tx_en         <= 1'b0;
         tx_fifo_read       <= 1'b0;
         uart_tx_data       <= 8'h00;
-        rx_fifo_write_data <= 8'h00;
-        rx_fifo_write      <= 1'b0;
     end else begin
-        if(uart_tx_busy == 1'b0 && tx_fifo_empty == 1'b0) begin
-            uart_tx_en   <= 1'b1;
-            uart_tx_data <= tx_fifo_read_data;
-            tx_fifo_read <= 1'b1;
-        end
+        case (tx_fifo_read_state)
+            1'b0: begin
+                if(uart_tx_busy == 1'b0 && tx_fifo_empty == 1'b0) begin
+                    tx_fifo_read <= 1'b1;
+                    tx_fifo_read_state <= 1'b1;
+                end
+            end
 
-        if(rx_fifo_full == 1'b0 && uart_rx_valid == 1'b1) begin
-            rx_fifo_write_data <= uart_rx_data;
-            rx_fifo_write      <= 1'b1;
-        end
+            1'b1: begin
+                if(uart_tx_busy == 1'b0 && tx_fifo_empty == 1'b0) begin
+                    uart_tx_en   <= 1'b1;
+                    uart_tx_data <= tx_fifo_read_data;
+                    tx_fifo_read_state <= 1'b0;
+                end
+            end
+
+            default: tx_fifo_read_state <= 1'b0;
+        endcase
     end 
 end
 
