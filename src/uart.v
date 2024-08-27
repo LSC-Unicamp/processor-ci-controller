@@ -95,17 +95,18 @@ always @(posedge clk ) begin
             READ: begin
                 if(counter_read < (WORD_SIZE_BY)) begin
                     if(rx_fifo_empty == 1'b0) begin
-                       counter_read <= counter_read + 1'b1;
-                       rx_fifo_read <= 1'b1;
-                       state_read <= COPY_READ_BUFFER;
+                        read_data <= {read_data[23:0], rx_fifo_read_data};
+                        counter_read <= counter_read + 1'b1;
+                        rx_fifo_read <= 1'b1;
+                        state_read <= COPY_READ_BUFFER;
                     end
                 end else begin
+                    read_data <= {read_data[23:0], rx_fifo_read_data};
                     state_read <= WB;
                 end
             end
 
             COPY_READ_BUFFER: begin
-                read_data <= {read_data[23:0], rx_fifo_read_data};
                 state_read <= READ;
             end
 
@@ -198,7 +199,7 @@ always @(posedge clk) begin
     end 
 end
 
-reg tx_fifo_read_state;
+reg [1:0] tx_fifo_read_state;
 
 always @(posedge clk ) begin
     uart_tx_en <= 1'b0;
@@ -208,23 +209,31 @@ always @(posedge clk ) begin
         uart_tx_en         <= 1'b0;
         tx_fifo_read       <= 1'b0;
         uart_tx_data       <= 8'h00;
-        tx_fifo_read_state <= 1'b0;
+        tx_fifo_read_state <= 2'b00;
     end else begin
         case (tx_fifo_read_state)
-            1'b0: begin
+            2'b00: begin
                 if(uart_tx_busy == 1'b0 && tx_fifo_empty == 1'b0) begin
                     tx_fifo_read <= 1'b1;
-                    tx_fifo_read_state <= 1'b1;
+                    tx_fifo_read_state <= 2'b01;
                 end
             end
 
-            1'b1: begin
-                uart_tx_en   <= 1'b1;
-                uart_tx_data <= tx_fifo_read_data;
-                tx_fifo_read_state <= 1'b0;
+            2'b01: begin
+                tx_fifo_read_state <= 2'b10; // estado para transição dos  dados
             end
 
-            default: tx_fifo_read_state <= 1'b0;
+            2'b10: begin
+                uart_tx_en   <= 1'b1;
+                uart_tx_data <= tx_fifo_read_data;
+                tx_fifo_read_state <= 2'b11;
+            end
+
+            2'b11: begin
+                tx_fifo_read_state <= 2'b00; // estado para transição dos  dados
+            end
+
+            default: tx_fifo_read_state <= 2'b00;
         endcase
     end 
 end
