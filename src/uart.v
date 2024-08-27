@@ -208,6 +208,7 @@ always @(posedge clk ) begin
         uart_tx_en         <= 1'b0;
         tx_fifo_read       <= 1'b0;
         uart_tx_data       <= 8'h00;
+        tx_fifo_read_state <= 1'b0;
     end else begin
         case (tx_fifo_read_state)
             1'b0: begin
@@ -218,11 +219,9 @@ always @(posedge clk ) begin
             end
 
             1'b1: begin
-                if(uart_tx_busy == 1'b0 && tx_fifo_empty == 1'b0) begin
-                    uart_tx_en   <= 1'b1;
-                    uart_tx_data <= tx_fifo_read_data;
-                    tx_fifo_read_state <= 1'b0;
-                end
+                uart_tx_en   <= 1'b1;
+                uart_tx_data <= tx_fifo_read_data;
+                tx_fifo_read_state <= 1'b0;
             end
 
             default: tx_fifo_read_state <= 1'b0;

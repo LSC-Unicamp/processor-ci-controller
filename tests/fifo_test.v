@@ -1,7 +1,7 @@
 module fifo_tb ();
 
 reg clk, reset, read, write;
-reg [7:0] write_data;
+reg [7:0] write_data, buffer;
 wire [7:0] read_data;
 
 initial begin
@@ -46,11 +46,13 @@ initial begin
 
     #2
 
+    write = 1'b0;
     read = 1'b1;
 
     #2
 
     read = 1'b0;
+    buffer = read_data;
 
     #2
 
@@ -60,10 +62,12 @@ initial begin
 
     #2
 
+    write = 1'b0;
     read = 1'b1;
 
     #2
 
+    buffer = read_data;
     read = 1'b0;
 
     #2 
