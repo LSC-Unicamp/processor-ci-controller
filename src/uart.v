@@ -76,18 +76,18 @@ Read state machine:
 */
 
 always @(posedge clk ) begin
-    read_response  = 1'b0;
-    rx_fifo_read   = 1'b0;
+    rx_fifo_read   <= 1'b0;
+    read_response  <= 1'b0;
 
     if(reset == 1'b1) begin
         state_read         <= IDLE;
         rx_fifo_read       <= 1'b0;
         read_data          <= 32'h00000000;
-        counter_read       <= 2'b00;
+        counter_read       <= 3'b000;
     end else begin
         case (state_read)
             IDLE: begin
-                counter_read <= 2'b00;
+                counter_read <= 3'b000;
                 if(read) begin
                     case (address[4:2])
                         3'b000: state_read <= READ;
@@ -107,8 +107,9 @@ always @(posedge clk ) begin
                     if(rx_fifo_empty == 1'b0) begin
                        counter_read <= counter_read + 1'b1;
                        rx_fifo_read <= 1'b1;
-                       read_data <= {24'h000000, rx_fifo_read_data};
-                       //read_data <= {24'h000000, 8'hff};
+                       //read_data <= {24'h000000, rx_fifo_read_data};
+                       //read_data <= {rx_fifo_read_data, read_data[31:8]};
+                       read_data <= {read_data[23:0], rx_fifo_read_data};
                     end
                 end else begin
                     state_read <= WB;
@@ -141,6 +142,7 @@ always @(posedge clk ) begin
             end
 
             FINISH: begin
+                read_response  <= 1'b1;
                 state_read <= IDLE;
             end
 
@@ -155,19 +157,19 @@ Write state machine:
 */
 
 always @(posedge clk ) begin
-    write_response = 1'b0;
-    tx_fifo_write  = 1'b0;
+    write_response <= 1'b0;
+    tx_fifo_write  <= 1'b0;
 
     if(reset == 1'b1) begin
         state_write        <= IDLE;
         tx_fifo_write      <= 1'b0;
         tx_fifo_write_data <= 8'h00;
         write_data_buffer  <= 32'h00000000;
-        counter_write      <= 2'b00;
+        counter_write      <= 3'b000;
     end else begin
         case (state_write)
             IDLE: begin
-                counter_write <= 2'b00;
+                counter_write <= 3'b000;
                 if(write) begin
                     state_write <= COPY_WRITE_BUFFER;
                 end else begin
@@ -181,11 +183,12 @@ always @(posedge clk ) begin
             end
 
             WRITE: begin
-                if(counter_write < (WORD_SIZE_BY)) begin
+                if(counter_write < WORD_SIZE_BY) begin
                     if(tx_fifo_full == 1'b0) begin
-                       counter_write <= counter_write + 1'b1;
-                       tx_fifo_write <= 1'b1;
-                       tx_fifo_write_data <= write_data_buffer[7:0];
+                        tx_fifo_write_data <= write_data_buffer[31:24];
+                        write_data_buffer <= {write_data_buffer[23:0], 8'h00};
+                        counter_write <= counter_write + 1'b1;
+                        tx_fifo_write <= 1'b1;
                     end
                 end else begin
                     state_write <= WB;
@@ -198,6 +201,7 @@ always @(posedge clk ) begin
             end
 
             FINISH: begin
+                write_response <= 1'b1;
                 state_write <= IDLE;
             end
 
@@ -206,105 +210,6 @@ always @(posedge clk ) begin
     end
 end
 
-/*
-always @(posedge clk ) begin
-    response <= 1'b0;
-    rx_fifo_read <= 1'b0;
-    tx_fifo_write <= 1'b0;
-
-    if(reset == 1'b1) begin
-        state              <= IDLE;
-        tx_fifo_write      <= 1'b0;
-        rx_fifo_read       <= 1'b0;
-        tx_fifo_write_data <= 8'h00;
-        read_data          <= 32'h00000000;
-        write_data_buffer  <= 32'h00000000;
-    end else begin
-        case (state)
-            IDLE: begin
-                counter <= 2'b00;
-                if(write) begin
-                    state <= COPY_WRITE_BUFFER;
-                end else if(read) begin
-                    case (address[4:2])
-                        3'b000: state <= READ;
-                        3'b001: state <= READ_RX_FIFO_EMPTY;
-                        3'b010: state <= READ_TX_FIFO_EMPTY;
-                        3'b011: state <= READ_RX_FIFO_FULL;
-                        3'b100: state <= READ_TX_FIFO_FULL;
-                        default: state <= READ;
-                    endcase
-                end else begin
-                    state <= IDLE;
-                end
-            end 
-            READ: begin
-                if(counter < (WORD_SIZE_BY)) begin
-                    if(rx_fifo_empty == 1'b0) begin
-                       counter <= counter + 1'b1;
-                       rx_fifo_read <= 1'b1;
-                       //read_data <= {read_data[23:0], rx_fifo_read_data};
-                       read_data <= {24'h000000, rx_fifo_read_data};
-                    end
-                end else begin
-                    state <= WB;
-                    //state <= WRITE;
-                end
-            end
-            COPY_WRITE_BUFFER: begin
-                write_data_buffer <= write_data;
-                state <= WRITE;
-            end
-
-            WRITE: begin
-                //tx_fifo_write <= 1'b1;
-                //tx_fifo_write_data <= read_data[7:0];
-                if(counter < (WORD_SIZE_BY)) begin
-                    if(tx_fifo_full == 1'b0) begin
-                       counter <= counter + 1'b1;
-                       tx_fifo_write <= 1'b1;
-                       //tx_fifo_write_data <= write_data_buffer[31:24];
-                       tx_fifo_write_data <= write_data_buffer[7:0];
-                       //write_data_buffer <= {write_data_buffer[23:0], 8'h00};
-                    end
-                end else begin
-                    state <= WB;
-                end
-            end
-            READ_RX_FIFO_EMPTY: begin
-                read_data <= {31'h00000000, rx_fifo_empty};
-                state <= WB;
-            end
-
-            READ_TX_FIFO_EMPTY: begin
-                read_data <= {31'h00000000, tx_fifo_empty};
-                state <= WB;
-            end
-
-            READ_RX_FIFO_FULL: begin
-                read_data <= {31'h00000000, rx_fifo_full};
-                state <= WB;
-            end
-
-            READ_TX_FIFO_FULL: begin
-                read_data <= {31'h00000000, tx_fifo_full};
-                state <= WB;
-            end
-
-            WB: begin
-                response <= 1'b1;
-                state <= FINISH;
-            end
-
-            FINISH: begin
-                state    <= IDLE;
-            end
-
-            default: state <= IDLE; 
-        endcase
-    end
-end
-*/
 
 always @(posedge clk) begin
     uart_tx_en <= 1'b0;

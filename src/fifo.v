@@ -29,19 +29,19 @@ always @(posedge clk) begin
         read_ptr <= 6'd0;
         write_ptr <= 6'd0;
     end else begin
-        if (write && full == 1'b0) begin
+        if (read == 1'b1 && empty == 1'b0) begin
+            counter <= counter - 1'b1;
+            read_ptr <= (read_ptr == DEPTH-1) ? 'd0 : read_ptr + 1'b1;
+        end else if (write == 1'b1 && full == 1'b0) begin
             counter <= counter + 1'b1;
             memory[write_ptr] <= write_data;
             write_ptr <= (write_ptr == DEPTH-1) ? 6'd0 : write_ptr + 1'b1;
-        end else if (read && empty == 1'b0) begin
-            counter <= counter - 1'b1;
-            read_ptr <= (read_ptr == DEPTH-1) ? 'd0 : read_ptr + 1'b1;
         end
     end
 end
 
 assign read_data = memory[read_ptr];
 assign full = (counter == DEPTH) ? 1'b1 : 1'b0;
-assign empty = (counter == 0) ? 1'b1 : 1'b0;
+assign empty = (counter == 'd0) ? 1'b1 : 1'b0;
     
 endmodule
