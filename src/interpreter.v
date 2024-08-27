@@ -2,7 +2,7 @@ module Interpreter #(
     parameter CLK_FREQ = 25000000,
     parameter PULSE_CONTROL_BITS = 32,
     parameter BUS_WIDTH = 32,
-    parameter ID = 32'h0000006A,
+    parameter ID = 32'h7700006A,
     parameter RESET_CLK_CYCLES = 20
 ) (
     //  Control signals
@@ -69,7 +69,7 @@ localparam READ_ACUMULATOR_POS_IN_MEMORY       = 8'b01110010; // r
 localparam SET_TIMEOUT                         = 8'b01010100; // T
 localparam SET_MEMORY_PAGE_SIZE                = 8'b01010000; // P
 localparam RUN_TESTS                           = 8'b01000101; // E
-localparam PING                                = 8'b01110000; // p
+localparam PING                                = 8'b01110000; // p - 0x70
 localparam DEFINE_N_AS_PROGRAM_FINISH_POSITION = 8'b01000100; // D
 localparam DEFINE_ACUMULATOR_AS_PROGRAM_FINISH_POSITION = 8'b01100100; // d
 
@@ -78,7 +78,6 @@ localparam DEFINE_ACUMULATOR_AS_PROGRAM_FINISH_POSITION = 8'b01100100; // d
 initial begin
     state = IDLE;
     counter = 8'h00;
-    uart_buffer = 32'h0;
     read_buffer = 32'h0;
     timeout = 32'h0;
     accumulator = 64'h0;
@@ -86,11 +85,19 @@ initial begin
 end
 
 always @(posedge clk) begin
+    uart_read       <= 1'b0;
+    uart_write      <= 1'b0;
+    core_reset      <= 1'b0;
+    write_pulse     <= 1'b0;
+    memory_read     <= 1'b0;
+    memory_write    <= 1'b0;
+
     if(reset == 1'b1) begin
         state <= IDLE;
         uart_buffer <= 32'h0;
         accumulator <= 32'h0;
         counter <= 8'h00;
+        core_clk_enable <= 1'b0;
     end else begin
         case (state)
             IDLE: begin
@@ -104,6 +111,9 @@ always @(posedge clk) begin
             end 
 
             FETCH: begin
+                uart_read <= 1'b1;
+                uart_buffer <= uart_read_data;
+
                 if(uart_read_response == 1'b1) begin
                     state <= DECODE;
                 end else begin
@@ -112,10 +122,6 @@ always @(posedge clk) begin
             end
 
             DECODE: begin
-                if(uart_buffer[7:0] == 0) begin
-                    led <= 4'hF;
-                    state <= PING;
-                end else
                 case (uart_buffer[7:0])
                     WRITE_CLK: state <= WRITE_CLK;
                     STOP_CLK: state <= STOP_CLK;
@@ -139,11 +145,25 @@ always @(posedge clk) begin
                 endcase
             end
 
-            WRITE_CLK: state <= IDLE;
-            STOP_CLK: state <= IDLE;
-            RESUME_CLK: state <= IDLE;
+            WRITE_CLK: begin
+                core_clk_enable <= 1'b1;
+                num_of_cycles_to_pulse <= {8'h00, uart_buffer[31:8]};
+                write_pulse <= 1'b1;
+                state <= IDLE;
+            end
+            STOP_CLK: begin
+                core_clk_enable <= 1'b0;
+                state <= IDLE;
+            end
+
+            RESUME_CLK: begin
+                core_clk_enable <= 1'b1;
+                state <= IDLE;
+            end
 
             RESET_CORE: begin
+                core_reset <= 1'b1;
+
                 if(counter == RESET_CLK_CYCLES) begin
                     state <= IDLE;
                 end else begin
@@ -152,43 +172,83 @@ always @(posedge clk) begin
             end
 
             WRITE_IN_MEMORY: begin
-                
+                memory_mux_selector <= 1'b0;
+                address <= {8'h0, uart_buffer[31:8]};
             end
 
             READ_FROM_MEMORY: begin
-
+                memory_mux_selector <= 1'b0;
+                address <= uart_buffer[31:8];
+                read_buffer <= read_data;
+                memory_read <= 1'b1;
             end
 
-            LOAD_UPPER_ACUMULATOR: state <= IDLE;
-            LOAD_LOWER_ACUMULATOR: state <= IDLE;
-            ADD_N_TO_ACUMULATOR: state <= IDLE;
+            LOAD_UPPER_ACUMULATOR: begin
+                accumulator <= {32'h0, uart_buffer[31:8], accumulator[7:0]};
+                state <= IDLE;
+            end
+            LOAD_LOWER_ACUMULATOR: begin
+                accumulator <= {accumulator[63:8], uart_buffer[7:0]};
+                state <= IDLE;
+            end
+
+            ADD_N_TO_ACUMULATOR: begin
+                accumulator <= accumulator + {40'h0, uart_buffer[31:8]};
+                state <= IDLE;
+            end
 
             WRITE_ACUMULATOR_IN_POS_N: begin
-
+                address <= {8'h0, uart_buffer[31:8]}; // ver alinhamento depois
+                write_data <= accumulator[31:0];
+                memory_write <= 1'b1;
             end
 
             WRITE_N_IN_POS_ACUMULATOR: begin
-
+                address <= accumulator[31:0]; // ver alinhamento depois
+                write_data <= {8'h0, uart_buffer[31:8]};
+                memory_write <= 1'b1;
             end
 
             READ_ACUMULATOR_POS_IN_MEMORY: begin
-
+                address <= accumulator[31:0]; // ver alinhamento depois
+                memory_read <= 1'b1;
+                read_buffer <= read_data;
             end
 
-            SET_TIMEOUT: state <= IDLE;
-            SET_MEMORY_PAGE_SIZE: state <= IDLE;
+            SET_TIMEOUT: begin
+                timeout <= {8'h0, uart_buffer[31:8]};
+                state <= IDLE;
+            end
+
+            SET_MEMORY_PAGE_SIZE: begin
+                memory_page_size <= uart_buffer[31:8];
+                state <= IDLE;
+            end
+
             RUN_TESTS: begin
                 
             end
 
             PING: begin
+                read_buffer <= ID;
                 state <= SEND_READ_BUFFER;
             end
 
-            DEFINE_N_AS_PROGRAM_FINISH_POSITION: state <= IDLE;
-            DEFINE_ACUMULATOR_AS_PROGRAM_FINISH_POSITION: state <= IDLE;
+            DEFINE_N_AS_PROGRAM_FINISH_POSITION: begin
+                end_position <= {8'h0, uart_buffer[31:8]};
+                state <= IDLE;
+            end
 
-            SEND_READ_BUFFER: state <= WAIT_WRITE_RESPONSE;
+            DEFINE_ACUMULATOR_AS_PROGRAM_FINISH_POSITION: begin
+                end_position <= accumulator[31:0];
+                state <= IDLE;
+            end
+
+            SEND_READ_BUFFER: begin
+                uart_write_data <= read_buffer;
+                uart_write <= 1'b1;
+                state <= WAIT_WRITE_RESPONSE;
+            end
 
             WAIT_WRITE_RESPONSE: begin
                 if(uart_write_response == 1'b1) begin
@@ -205,124 +265,4 @@ always @(posedge clk) begin
     end
 end
 
-always @(posedge clk) begin
-    uart_read       <= 1'b0;
-    uart_write      <= 1'b0;
-    core_clk_enable <= 1'b0;
-    core_reset      <= 1'b0;
-    write_pulse     <= 1'b0;
-    memory_read     <= 1'b0;
-    memory_write    <= 1'b0;
-    //memory_mux_selector <= 1'b1;
-
-    case (state)
-        IDLE: begin
-            
-        end
-
-        FETCH: begin
-            uart_buffer <= uart_read_data;
-            uart_read <= 1'b1;
-        end 
-
-        DECODE: begin
-            
-        end
-
-        WRITE_CLK: begin
-            core_clk_enable <= 1'b1;
-            num_of_cycles_to_pulse <= {8'h00, uart_buffer[31:8]};
-            write_pulse <= 1'b1;
-        end
-
-        STOP_CLK: begin
-            core_clk_enable <= 1'b0;
-        end
-
-        RESUME_CLK: begin
-            core_clk_enable <= 1'b1;
-        end
-
-        RESET_CORE: begin
-            core_reset <= 1'b1;
-        end
-
-        WRITE_IN_MEMORY: begin
-            memory_mux_selector <= 1'b0;
-            address <= {8'h0, uart_buffer[31:8]};
-        end
-
-        READ_FROM_MEMORY: begin
-            memory_mux_selector <= 1'b0;
-            address <= uart_buffer[31:8];
-            read_buffer <= read_data;
-            memory_read <= 1'b1;
-        end
-
-        LOAD_UPPER_ACUMULATOR: begin
-            accumulator <= {32'h0, uart_buffer[31:8], accumulator[7:0]};
-        end
-
-        LOAD_LOWER_ACUMULATOR: begin
-            accumulator <= {accumulator[63:8], uart_buffer[7:0]};
-        end
-
-        ADD_N_TO_ACUMULATOR: begin
-            accumulator <= accumulator + {40'h0, uart_buffer[31:8]};
-        end
-
-        WRITE_ACUMULATOR_IN_POS_N: begin
-            address <= {8'h0, uart_buffer[31:8]}; // ver alinhamento depois
-            write_data <= accumulator[31:0];
-            memory_write <= 1'b1;
-        end
-
-        WRITE_N_IN_POS_ACUMULATOR: begin
-            address <= accumulator[31:0]; // ver alinhamento depois
-            write_data <= {8'h0, uart_buffer[31:8]};
-            memory_write <= 1'b1;
-        end
-
-        READ_ACUMULATOR_POS_IN_MEMORY: begin
-            address <= accumulator[31:0]; // ver alinhamento depois
-            memory_read <= 1'b1;
-            read_buffer <= read_data;
-        end
-
-        SET_TIMEOUT: begin
-            timeout <= {8'h0, uart_buffer[31:8]};
-        end
-
-        SET_MEMORY_PAGE_SIZE: begin
-            memory_page_size <= uart_buffer[31:8];
-        end
-
-        RUN_TESTS: begin
-
-        end
-
-        PING: begin
-            read_buffer <= ID;
-        end
-
-        DEFINE_N_AS_PROGRAM_FINISH_POSITION: begin
-            end_position <= {8'h0, uart_buffer[31:8]};
-        end
-
-        DEFINE_ACUMULATOR_AS_PROGRAM_FINISH_POSITION: begin
-            end_position <= accumulator[31:0];
-        end
-
-        SEND_READ_BUFFER: begin
-            uart_write_data <= read_buffer;
-            uart_write <= 1'b1;
-        end
-
-        WAIT_WRITE_RESPONSE: begin
-
-        end
-
-    endcase
-end
-    
 endmodule

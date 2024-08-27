@@ -28,8 +28,8 @@ Controller #(
     .BUFFER_SIZE(8),
     .PULSE_CONTROL_BITS(32),
     .BUS_WIDTH(32),
-    .WORD_SIZE_BY(1),
-    .ID(32'h0000004A),
+    .WORD_SIZE_BY(4),
+    .ID(32'h7700006A),
     .RESET_CLK_CYCLES(20),
     .MEMORY_FILE(""),
     .MEMORY_SIZE(4096)
