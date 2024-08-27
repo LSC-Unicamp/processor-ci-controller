@@ -14,9 +14,6 @@ module Controller #(
     input wire clk,
     input wire reset,
 
-    // debug
-    output wire [3:0] led,
-
     // saida para serial
     input wire rx,
     output wire tx,
@@ -34,14 +31,34 @@ module Controller #(
     output wire [31:0] core_read_data_memory
 );
 
-wire write_pulse, clk_enable, uart_read, uart_write, uart_read_response, uart_write_response,
+// UART Wires
+wire uart_read, uart_write, uart_read_response, uart_write_response,
     uart_rx_empty, uart_tx_empty;
 wire [31:0] uart_read_data, uart_write_data;
+
+// Clock Divider Wires
+wire write_pulse, clk_enable;
 wire [PULSE_CONTROL_BITS-1:0] num_pulses;
 
-initial begin
+// Memory Wires
+wire memory_read, memory_write, memory_response;
+wire [31:0] memory_read_data, memory_write_data, memory_address;
 
-end
+// Memory Interpreter Wires
+wire interpreter_memory_read, interpreter_memory_write, interpreter_memory_response, memory_mux_selector;
+wire [31:0] interpreter_memory_read_data, interpreter_memory_write_data, interpreter_memory_address;
+
+// Bus Logic
+assign memory_read = (memory_mux_selector == 1'b1) ? core_read_memory : interpreter_memory_read;
+assign memory_write = (memory_mux_selector == 1'b1) ? core_write_memory : interpreter_memory_write;
+assign memory_address = (memory_mux_selector == 1'b1) ? core_address_memory : {interpreter_memory_address};
+assign memory_write_data = (memory_mux_selector == 1'b1) ? core_write_data_memory : interpreter_memory_write_data;
+assign interpreter_memory_response = (memory_mux_selector == 1'b0) ? memory_response : 1'b0;
+assign interpreter_memory_read_data = (memory_mux_selector == 1'b0) ? memory_read_data : 32'h00000000;
+assign core_memory_response = (memory_mux_selector == 1'b1) ? memory_response : 1'b0;
+assign core_read_data_memory = (memory_mux_selector == 1'b1) ? memory_read_data : 32'h00000000;
+
+
 
 ClkDivider #(
     .COUNTER_BITS(32),
@@ -66,8 +83,6 @@ Interpreter #(
 ) Interpreter(
     .clk(clk),
     .reset(reset),
-    //debug
-    .led(led),
     // uart buffer signal
     .uart_rx_empty(uart_rx_empty),
     .uart_tx_empty(uart_tx_empty),
@@ -85,14 +100,14 @@ Interpreter #(
     .num_of_cycles_to_pulse(num_pulses),
     .write_pulse(write_pulse),
     // memory bus signal
-    .memory_response(),
-    .memory_read(),
-    .memory_write(),
-    .memory_mux_selector(),
+    .memory_response(interpreter_memory_response),
+    .memory_read(interpreter_memory_read),
+    .memory_write(interpreter_memory_write),
+    .memory_mux_selector(memory_mux_selector),
     .memory_page_number(),
-    .write_data(),
-    .address(),
-    .read_data()
+    .write_data(interpreter_memory_write_data),
+    .address(interpreter_memory_address),
+    .read_data(interpreter_memory_read_data)
 );
 
 UART #(
@@ -127,11 +142,11 @@ Memory #(
 ) Memory(
     .clk(clk),
     .reset(reset),
-    .memory_read(core_read_memory),
-    .memory_write(core_write_memory),
-    .address(core_address_memory),
-    .write_data(core_write_data_memory),
-    .read_data(core_read_data_memory)
+    .memory_read(memory_read),
+    .memory_write(memory_write),
+    .address(memory_address),
+    .write_data(memory_write_data),
+    .read_data(memory_read_data)
 );
     
 endmodule
