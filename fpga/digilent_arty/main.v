@@ -37,8 +37,6 @@ Controller #(
     .clk(clk_o),
     .reset(reset_o),
 
-    .led(led),
-
     .tx(tx),
     .rx(rx),
 
