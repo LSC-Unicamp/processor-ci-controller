@@ -177,7 +177,8 @@ Memory #(
     .memory_write(memory_write),
     .address(memory_address),
     .write_data(memory_write_data),
-    .read_data(memory_read_data)
+    .read_data(memory_read_data),
+    .response(memory_response)
 );
     
 endmodule

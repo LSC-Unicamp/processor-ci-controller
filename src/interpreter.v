@@ -204,6 +204,7 @@ always @(posedge clk) begin
             end
 
             RESET_CORE: begin
+                counter <= 8'h00;
                 core_reset <= 1'b1;
                 core_clk_enable <= 1'b1;
                 num_of_cycles_to_pulse <= RESET_CLK_CYCLES;
@@ -213,6 +214,7 @@ always @(posedge clk) begin
 
             RESET_CORE_LOOP: begin
                 core_reset <= 1'b1;
+                counter <= counter + 1'b1;
                 if(counter == RESET_CLK_CYCLES) begin
                     core_clk_enable <= 1'b0;
                     state <= RESET_CORE_END;
@@ -449,7 +451,7 @@ always @(posedge clk) begin
 
             RUN_TESTS_WAIT: begin
                 timeout_counter <= timeout_counter + 1'b1;
-                if(finish_execution == 1'b1 || timeout_counter < timeout ) begin
+                if(finish_execution == 1'b1 || timeout < timeout_counter ) begin
                     state <= RUN_TESTS_UPDATE_PAGE;
                 end else begin
                     state <= RUN_TESTS_WAIT;
@@ -488,7 +490,7 @@ always @(posedge clk) begin
 
             UNTIL_END_POINT_WAIT: begin
                 timeout_counter <= timeout_counter + 1'b1;
-                if(finish_execution == 1'b1 || timeout_counter < timeout ) begin
+                if(finish_execution == 1'b1 || timeout < timeout_counter ) begin
                     state <= SEND_UNTIL_FINISH_MESSAGE;
                 end else begin
                     state <= UNTIL_END_POINT_WAIT;
