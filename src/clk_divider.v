@@ -17,8 +17,11 @@ reg clk_o_auto;
 reg [COUNTER_BITS - 1:0] clk_counter;
 reg [PULSE_CONTROL_BITS - 1:0] pulse_counter;
 
-assign clk_o = (out_enable == 1'b1) ? (option == 1'b0) ? 
-    clk_o_pulse : clk_o_auto : 1'b0; // multiplexador da saida
+//assign clk_o = (out_enable == 1'b1) ? (option == 1'b0) ? 
+//    clk_o_pulse : clk_o_auto : 1'b0; // multiplexador da saida
+
+assign clk_o = (option == 1'b0) ? clk_o_pulse : (out_enable == 1'b1) ? 
+    clk_o_auto : 1'b0;
 
 assign clk_o_pulse = (pulse_counter != 32'd0) 
                     ? clk : 1'b0; // liga a saida ao clock enquanto o 
@@ -55,12 +58,13 @@ always @(posedge clk ) begin
     if(reset == 1'b1) begin
         pulse_counter <= 32'd0;
     end else begin
+        if(out_enable == 1'b1) begin
+            if(pulse_counter > 32'd0) begin
+                pulse_counter <= pulse_counter - 1'b1;
+            end
+        end 
         if(write_pulse == 1'b1) begin
             pulse_counter <= pulse;
-        end
-
-        if(pulse_counter > 32'd0) begin
-            pulse_counter <= pulse_counter - 1'b1;
         end
     end
 end

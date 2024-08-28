@@ -28,7 +28,7 @@ always @(posedge clk ) begin
     end else begin
         if(read == 1'b1 && empty == 1'b0) begin
             read_data <= memory[read_ptr];
-            read_ptr <= (read_ptr == DEPTH-1) ? 'd0 : read_ptr + 1'b1;
+            read_ptr <= (read_ptr == DEPTH-1'b1) ? 'd0 : read_ptr + 1'b1;
         end
     end
 end
@@ -39,7 +39,7 @@ always @(posedge clk ) begin
     end else begin
         if(write == 1'b1 && full == 1'b0) begin
             memory[write_ptr] <= write_data;
-            write_ptr <= (write_ptr == DEPTH-1) ? 'd0 : write_ptr + 1'b1;
+            write_ptr <= (write_ptr == DEPTH-1'b1) ? 'd0 : write_ptr + 1'b1;
         end
     end
 end
