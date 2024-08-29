@@ -28,7 +28,12 @@ module Controller #(
     input wire core_write_memory,
     input wire [31:0] core_address_memory,
     input wire [31:0] core_write_data_memory,
-    output wire [31:0] core_read_data_memory
+    output wire [31:0] core_read_data_memory,
+
+    output wire [31:0] core_read_data_memory_sync,
+    output wire core_memory_read_response_sync,
+    output wire core_memory_write_response_sync
+
 );
 
 // UART Wires
@@ -178,7 +183,13 @@ Memory #(
     .address(memory_address),
     .write_data(memory_write_data),
     .read_data(memory_read_data),
-    .response(memory_response)
+    .response(memory_response),
+
+    // sync sinals
+
+    .read_sync(core_read_data_memory_sync),
+    .sync_write_response(core_memory_read_response_sync),
+    .sync_read_response(core_memory_write_response_sync)
 );
     
 endmodule

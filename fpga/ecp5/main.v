@@ -46,7 +46,12 @@ Controller #(
     .core_write_memory(memory_write),
     .core_address_memory(address),
     .core_write_data_memory(core_write_data),
-    .core_read_data_memory(core_read_data)
+    .core_read_data_memory(core_read_data),
+
+    //sync memory bus
+    .core_read_data_memory_sync(),
+    .core_memory_read_response_sync(),
+    .core_memory_write_response_sync()
 );
 
 Core #(
@@ -62,7 +67,5 @@ Core #(
     .read_data(core_read_data),
     .address(address)
 );
-
-
     
 endmodule
