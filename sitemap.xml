@@ -1,3 +1,129 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/LICENSE/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/LICENSE/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/LICENSE/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/boards/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/boards/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/boards/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/contact/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/contact/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/contact/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/contributing/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/contributing/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/contributing/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/getting_started/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/getting_started/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/getting_started/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/instructions/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/instructions/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/instructions/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/internal/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/internal/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/internal/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/techniques_of_use/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/techniques_of_use/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/techniques_of_use/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/en/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/en/LICENSE/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/LICENSE/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/LICENSE/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/en/boards/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/boards/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/boards/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/en/contact/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/contact/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/contact/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/en/contributing/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/contributing/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/contributing/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/en/getting_started/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/getting_started/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/getting_started/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/en/instructions/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/instructions/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/instructions/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/en/internal/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/internal/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/internal/"/>
+    </url>
+    <url>
+        <loc>https://lsc-unicamp.github.io/processor-ci-controller/en/techniques_of_use/</loc>
+        <lastmod>2024-08-30</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://lsc-unicamp.github.io/processor-ci-controller/en/techniques_of_use/"/>
+        <xhtml:link rel="alternate" hreflang="pt" href="https://lsc-unicamp.github.io/processor-ci-controller/techniques_of_use/"/>
+    </url>
 </urlset>
