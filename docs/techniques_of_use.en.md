@@ -58,7 +58,7 @@ Set timeout;
 Execute tests in memory.
 ```
 
-## Data Flow
+# Data Flow
 
 Data can be sent and read from memory in two ways: atomically (word by word) or in bulk, sending N words at once.
 

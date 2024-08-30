@@ -58,7 +58,7 @@ Setar timeout;
 Executar testes em memória.
 ```
 
-## Fluxo de Dados
+# Fluxo de Dados
 
 É possível enviar e ler dados para a memória de duas formas: atômica (palavra por palavra) ou em lote, enviando N palavras de uma vez.
 
