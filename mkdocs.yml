@@ -1,21 +1,31 @@
-site_name: RISC-V ISA CI Controller
+site_name: ProcessorCI Controller
 docs_dir: docs
 site_author: Julio Nunes Avelar
 site_description: controller module for RISC-V core CI/CD
-repo_name: riscv-isa-ci-controller
-repo_url: https://github.com/LSC-Unicamp/riscv-isa-ci-controller
+repo_name: processor-ci-controller
+repo_url: https://github.com/LSC-Unicamp/processor-ci-controller
+site_url: https://lsc-unicamp.github.io/processor-ci-controller/
 copyright: CC BY-SA 4.0
 nav:
   - Home: index.md
+  - Instructions: instructions.md
+  - Internal: internal.md
+  - Utilization Techniques: techniques_of_use.md
+  - Boards: boards.md
+  - Contributing: contributing.md
+  - Contact: contact.md
+  - Getting Started: getting_started.md
 theme:
   name: material
-  language: pt-BR
+  #language: pt-BR
+  logo: img/logo.svg
+  favicon: img/logo.ico
   highlightjs: true
   features:
       - toc.integrate
       - navigation.tabs
-      - navigation.expand
-      - navigation.instant
+      #- navigation.expand
+      #- navigation.instant
       - navigation.instant.progress
       - content.code.copy
       - content.code.select
@@ -35,11 +45,21 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
 plugins:
-  - search
+  - search:
+      lang:
+        - en
+        - pt
+  - i18n:
+      languages:
+        - locale: pt
+          name: Português
+          default: true
+        - locale: en
+          name: English
 extra:
   social:
     - icon: fontawesome/brands/github 
-      link: https://github.com/LSC-Unicamp/riscv-isa-ci-controller
+      link: https://github.com/LSC-Unicamp/processor-ci-controller
 
 markdown_extensions:
   - attr_list
