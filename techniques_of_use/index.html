@@ -562,39 +562,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#fluxo-de-dados" class="md-nav__link">
-    <span class="md-ellipsis">
-      Fluxo de Dados
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Fluxo de Dados">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#carregamento-atomico" class="md-nav__link">
-    <span class="md-ellipsis">
-      Carregamento Atômico
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#carregamento-em-lote" class="md-nav__link">
-    <span class="md-ellipsis">
-      Carregamento em Lote
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -747,7 +714,7 @@ Setar timeout;
 
 Executar testes em memória.
 </code></pre>
-<h2 id="fluxo-de-dados">Fluxo de Dados</h2>
+<h1 id="fluxo-de-dados">Fluxo de Dados</h1>
 <p>É possível enviar e ler dados para a memória de duas formas: atômica (palavra por palavra) ou em lote, enviando N palavras de uma vez.</p>
 <h3 id="carregamento-atomico">Carregamento Atômico</h3>
 <p>O carregamento atômico é realizado lendo e escrevendo dados palavra por palavra. Esse método pode ser executado utilizando as seguintes instruções: "Escrever na posição N de memória", "Escrever N na posição do acumulador", "Ler a posição N de memória" e "Ler a posição do acumulador". Ao utilizar instruções baseadas em valores imediatos, é necessário enviar a instrução M vezes para ler ou escrever M palavras. Quando se utiliza o acumulador, é necessário definir o ponteiro do acumulador M vezes e executar as instruções de leitura e escrita M vezes. Dessa forma, o uso dessas instruções é mais adequado para pequenas modificações, como ler um resultado ou ler/escrever uma ou duas palavras na memória.</p>

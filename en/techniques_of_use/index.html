@@ -562,39 +562,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#data-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      Data Flow
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Data Flow">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#atomic-loading" class="md-nav__link">
-    <span class="md-ellipsis">
-      Atomic Loading
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#bulk-loading" class="md-nav__link">
-    <span class="md-ellipsis">
-      Bulk Loading
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -747,7 +714,7 @@ Set timeout;
 
 Execute tests in memory.
 </code></pre>
-<h2 id="data-flow">Data Flow</h2>
+<h1 id="data-flow">Data Flow</h1>
 <p>Data can be sent and read from memory in two ways: atomically (word by word) or in bulk, sending N words at once.</p>
 <h3 id="atomic-loading">Atomic Loading</h3>
 <p>Atomic loading is performed by reading and writing data word by word. This method can be executed using the following instructions: "Write to memory position N", "Write N to accumulator position", "Read memory position N", and "Read accumulator position". When using immediate value instructions, you need to send the instruction M times to read or write M words. When using the accumulator, you need to set the accumulator pointer M times and execute the read and write instructions M times. Thus, using these instructions is more suitable for small modifications, such as reading a result or reading/writing one or two words in memory.</p>
