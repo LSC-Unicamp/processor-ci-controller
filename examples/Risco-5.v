@@ -46,7 +46,20 @@ Controller #(
     .core_write_memory(memory_write),
     .core_address_memory(address),
     .core_write_data_memory(core_write_data),
-    .core_read_data_memory(core_read_data)
+    .core_read_data_memory(core_read_data),
+
+    //sync memory bus
+    .core_read_data_memory_sync(),
+    .core_memory_read_response_sync(),
+    .core_memory_write_response_sync(),
+
+    // Data memory
+    .core_memory_response_data(),
+    .core_read_memory_data(1'b0),
+    .core_write_memory_data(1'b0),
+    .core_address_memory_data(32'h00000000),
+    .core_write_data_memory_data(32'h00000000),
+    .core_read_data_memory_data()
 );
 
 Core #(

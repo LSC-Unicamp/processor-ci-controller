@@ -23,6 +23,7 @@ module Controller #(
     output wire clk_core,
     output wire reset_core,
 
+    // Memoria principal - memoria de instruções
     output wire core_memory_response,
     input wire core_read_memory,
     input wire core_write_memory,
@@ -32,7 +33,15 @@ module Controller #(
 
     output wire [31:0] core_read_data_memory_sync,
     output wire core_memory_read_response_sync,
-    output wire core_memory_write_response_sync
+    output wire core_memory_write_response_sync,
+
+    // Memoria de dados - sete como zero para não ser usada
+    output wire core_memory_response_data,
+    input wire core_read_memory_data,
+    input wire core_write_memory_data,
+    input wire [31:0] core_address_memory_data,
+    input wire [31:0] core_write_data_memory_data,
+    output wire [31:0] core_read_data_memory_data
 
 );
 
@@ -49,20 +58,41 @@ wire [PULSE_CONTROL_BITS-1:0] num_pulses;
 wire memory_read, memory_write, memory_response;
 wire [31:0] memory_read_data, memory_write_data, memory_address;
 
+// Data Memory Wires
+wire data_memory_read, data_memory_write, data_memory_response;
+wire [31:0] data_memory_read_data, data_memory_write_data, data_memory_address;
+
 // Memory Interpreter Wires
 wire interpreter_memory_read, interpreter_memory_write, interpreter_memory_response, memory_mux_selector;
 wire [31:0] interpreter_memory_read_data, interpreter_memory_write_data, interpreter_memory_address;
 
 // Bus Logic
-assign memory_read = (memory_mux_selector == 1'b1) ? core_read_memory : interpreter_memory_read;
-assign memory_write = (memory_mux_selector == 1'b1) ? core_write_memory : interpreter_memory_write;
+assign memory_read = (memory_mux_selector == 1'b1) ? core_read_memory : (interpreter_memory_address[31] == 1'b0) ? interpreter_memory_read : 1'b0;
+assign memory_write = (memory_mux_selector == 1'b1) ? core_write_memory : (interpreter_memory_address[31] == 1'b0) ? interpreter_memory_write : 1'b0;
+
 assign memory_address = (memory_mux_selector == 1'b1) ? (bus_mode == 1'b1) ? {
     memory_page_number, core_address_memory[5:0]}: core_address_memory : interpreter_memory_address;
 assign memory_write_data = (memory_mux_selector == 1'b1) ? core_write_data_memory : interpreter_memory_write_data;
-assign interpreter_memory_response = (memory_mux_selector == 1'b0) ? memory_response : 1'b0;
-assign interpreter_memory_read_data = (memory_mux_selector == 1'b0) ? memory_read_data : 32'h00000000;
+
+// core memory instruction response
 assign core_memory_response = (memory_mux_selector == 1'b1) ? memory_response : 1'b0;
 assign core_read_data_memory = (memory_mux_selector == 1'b1) ? memory_read_data : 32'h00000000;
+
+// Bus Logic - Data Memory
+assign data_memory_read = (memory_mux_selector == 1'b1) ? core_read_memory_data : (interpreter_memory_address[31] == 1'b1) ? interpreter_memory_read : 1'b0;
+assign data_memory_write = (memory_mux_selector == 1'b1) ? core_write_memory_data : (interpreter_memory_address[31] == 1'b1) ? interpreter_memory_write : 1'b0;
+
+assign data_memory_address = (memory_mux_selector == 1'b1) ? core_address_memory_data : {1'b0, interpreter_memory_address[30:0]};
+assign data_memory_write_data = (memory_mux_selector == 1'b1) ? core_write_data_memory_data : interpreter_memory_write_data;
+
+// core memory data response
+assign core_memory_response_data = (memory_mux_selector == 1'b1) ? data_memory_response : 1'b0;
+assign core_read_data_memory_data = (memory_mux_selector == 1'b1) ? data_memory_read_data : 32'h00000000;
+
+// Bus Logic - Interpreter
+// Interpreter memory response
+assign interpreter_memory_response = (memory_mux_selector == 1'b0) ? (interpreter_memory_address[31] == 1'b1) ? data_memory_response : memory_response : 1'b0;
+assign interpreter_memory_read_data = (memory_mux_selector == 1'b0) ? (interpreter_memory_address[31] == 1'b1) ? data_memory_read_data: memory_read_data : 32'h00000000;
 
 reg finish_execution;
 wire reset_bus, bus_mode;
@@ -77,7 +107,7 @@ always @(posedge clk ) begin
             if(core_address_memory[5:0] == end_position[5:0])
                 finish_execution <= 1'b1;
         end else begin
-            if(core_address_memory == end_position)
+            if(core_address_memory == end_position || core_address_memory_data == end_position)
                 finish_execution <= 1'b1;
         end
     end
@@ -190,6 +220,20 @@ Memory #(
     .read_sync(core_read_data_memory_sync),
     .sync_write_response(core_memory_read_response_sync),
     .sync_read_response(core_memory_write_response_sync)
+);
+
+Memory #(
+    .MEMORY_FILE(""),
+    .MEMORY_SIZE(4096)
+) Data_Memory(
+    .clk(clk),
+    .reset(reset),
+    .memory_read(data_memory_read),
+    .memory_write(data_memory_write),
+    .address(data_memory_address),
+    .write_data(data_memory_write_data),
+    .read_data(data_memory_read_data),
+    .response(data_memory_response)
 );
     
 endmodule

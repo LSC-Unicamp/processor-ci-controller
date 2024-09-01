@@ -78,6 +78,7 @@ localparam RUN_TESTS_WAIT                      = 8'b00010011;
 localparam RUN_TESTS_UPDATE_PAGE               = 8'b00010100;
 localparam RUN_TESTS_FINISH                    = 8'b00010101;
 localparam RUN_TESTS_INIT                      = 8'b00010110;
+localparam SEND_UNTIL_RELATORY                 = 8'b00010111;
 localparam WRITE_CLK                           = 8'b01000011; // C - 0x43
 localparam STOP_CLK                            = 8'b01010011; // S - 0x53
 localparam RESUME_CLK                          = 8'b01110010; // r - 0x72
@@ -298,7 +299,7 @@ always @(posedge clk) begin
 
             READ_ACUMULATOR_POS_IN_MEMORY: begin
                 memory_mux_selector <= 1'b0;
-                address <= accumulator[31:0]; // ver alinhamento depois
+                address <= accumulator[31:0] + {8'h00, uart_buffer[31:8]}; // ver alinhamento depois
                 memory_read <= 1'b1;
                 state <= MEMORY_READ;
                 return_state <= IDLE;
@@ -502,7 +503,13 @@ always @(posedge clk) begin
                 core_clk_enable <= 1'b0;
                 read_buffer     <= UNTIL_FINISH_MESSAGE;
                 state           <= SEND_READ_BUFFER;
-                return_state    <= IDLE;
+                return_state    <= SEND_UNTIL_RELATORY;
+            end
+
+            SEND_UNTIL_RELATORY: begin
+                read_buffer <= {timeout_counter[30:0], timeout <= timeout_counter};
+                state <= SEND_READ_BUFFER;
+                return_state <= IDLE;
             end
 
             default: begin
@@ -514,3 +521,4 @@ end
 
 endmodule
 // 00 00 03 4e 73 6F 66 69 6C 61 69 73 67 61 62 69
+// 80 00 00 55

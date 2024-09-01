@@ -24,7 +24,7 @@ theme:
   features:
       - toc.integrate
       - navigation.tabs
-      #- navigation.expand
+      - navigation.expand
       #- navigation.instant
       - navigation.instant.progress
       - content.code.copy
