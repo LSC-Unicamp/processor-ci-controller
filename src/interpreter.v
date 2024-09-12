@@ -232,7 +232,7 @@ always @(posedge clk) begin
 
             WRITE_IN_MEMORY: begin
                 memory_mux_selector <= 1'b0;
-                address <= {8'h0, uart_buffer[31:8]};
+                address <= {6'h0, uart_buffer[31:8], 2'b0};
 
                 if(uart_rx_empty == 1'b0) begin
                     state <= READ_SECOND_PAGE_FROM_SERIAL;
@@ -261,7 +261,7 @@ always @(posedge clk) begin
 
             READ_FROM_MEMORY: begin
                 memory_mux_selector <= 1'b0;
-                address <= uart_buffer[31:8];
+                address <= {6'h0, uart_buffer[31:8], 2'b0};
                 memory_read <= 1'b1;
                 state <= MEMORY_READ;
             end
@@ -283,7 +283,7 @@ always @(posedge clk) begin
 
             WRITE_ACUMULATOR_IN_POS_N: begin
                 memory_mux_selector <= 1'b0;
-                address <= {8'h0, uart_buffer[31:8]}; // ver alinhamento depois
+                address <= {6'h0, uart_buffer[31:8], 2'b0}; // ver alinhamento depois
                 write_data <= accumulator[31:0];
                 memory_write <= 1'b1;
                 state <= IDLE;
@@ -299,7 +299,7 @@ always @(posedge clk) begin
 
             READ_ACUMULATOR_POS_IN_MEMORY: begin
                 memory_mux_selector <= 1'b0;
-                address <= accumulator[31:0] + {8'h00, uart_buffer[31:8]}; // ver alinhamento depois
+                address <= accumulator[31:0] + {6'h0, uart_buffer[31:8], 2'b0}; // ver alinhamento depois
                 memory_read <= 1'b1;
                 state <= MEMORY_READ;
                 return_state <= IDLE;
@@ -333,7 +333,7 @@ always @(posedge clk) begin
             end
 
             DEFINE_N_AS_PROGRAM_FINISH_POSITION: begin
-                end_position <= {8'h0, uart_buffer[31:8]};
+                end_position <= {6'h00, uart_buffer[31:8], 2'b00};
                 state <= IDLE;
             end
 
@@ -491,7 +491,7 @@ always @(posedge clk) begin
 
             UNTIL_END_POINT_WAIT: begin
                 timeout_counter <= timeout_counter + 1'b1;
-                if(finish_execution == 1'b1 || timeout < timeout_counter ) begin
+                if(finish_execution == 1'b1 || timeout == timeout_counter ) begin
                     state <= SEND_UNTIL_FINISH_MESSAGE;
                 end else begin
                     state <= UNTIL_END_POINT_WAIT;
@@ -499,15 +499,16 @@ always @(posedge clk) begin
             end
 
             SEND_UNTIL_FINISH_MESSAGE: begin
-                reset_bus       <= 1'b1;
-                core_clk_enable <= 1'b0;
-                read_buffer     <= UNTIL_FINISH_MESSAGE;
-                state           <= SEND_READ_BUFFER;
-                return_state    <= SEND_UNTIL_RELATORY;
+                reset_bus           <= 1'b1;
+                core_clk_enable     <= 1'b0;
+                memory_mux_selector <= 1'b0;
+                read_buffer         <= UNTIL_FINISH_MESSAGE;
+                state               <= SEND_READ_BUFFER;
+                return_state        <= SEND_UNTIL_RELATORY;
             end
 
             SEND_UNTIL_RELATORY: begin
-                read_buffer <= {timeout_counter[30:0], timeout <= timeout_counter};
+                read_buffer <= {timeout_counter[30:0], timeout >= timeout_counter};
                 state <= SEND_READ_BUFFER;
                 return_state <= IDLE;
             end
