@@ -99,7 +99,7 @@ localparam DEFINE_N_AS_PROGRAM_FINISH_POSITION = 8'b01000100; // D - 0x44
 localparam DEFINE_ACUMULATOR_AS_PROGRAM_FINISH_POSITION = 8'b01100100; // d - 0x64
 localparam GET_ACUMULATOR                      = 8'b01100001; // a - 0x61
 localparam SWITCH_MEMORY_TO_CORE               = 8'b01001111; // O - 0x4F
-localparam WRITE_NEXT_N_WORDS_FROM_ACUMULATOR  = 8'b01001110; // N - 0x4E
+localparam WRITE_NEXT_N_WORDS_FROM_ACUMULATOR  = 8'b01100101; // e - 0x65
 localparam READ_NEXT_N_WORDS_FROM_ACUMULATOR   = 8'b01001101; // M - 0x4D
 localparam UNTIL_END_POINT                     = 8'b01110101; // u - 0x75
 
@@ -521,5 +521,5 @@ always @(posedge clk) begin
 end
 
 endmodule
-// 00 00 03 4e 73 6F 66 69 6C 61 69 73 67 61 62 69
+// 00 00 03 65 73 6F 66 69 6C 61 69 73 67 61 62 69
 // 80 00 00 55

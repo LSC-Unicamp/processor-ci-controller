@@ -9,6 +9,17 @@ read_verilog ../../src/memory.v
 read_verilog ../../src/interpreter.v
 read_verilog ../../src/controller.v
 
+read_verilog ../../Risco-5/src/core/alu_control.v
+read_verilog ../../Risco-5/src/core/alu.v
+read_verilog ../../Risco-5/src/core/control_unit.v
+read_verilog ../../Risco-5/src/core/core.v
+read_verilog ../../Risco-5/src/core/immediate_generator.v
+read_verilog ../../Risco-5/src/core/mux.v
+read_verilog ../../Risco-5/src/core/pc.v
+read_verilog ../../Risco-5/src/core/registers.v
+read_verilog ../../Risco-5/src/core/csr_unit.v
+read_verilog ../../Risco-5/src/core/mdu.v
+
 
 read_xdc "digilent_arty.xdc"
 
