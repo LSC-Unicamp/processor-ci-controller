@@ -267,7 +267,7 @@ FIFO #(
 );
 
 // UART RX
-uart_tool_rx #(
+uart_rx #(
     .BIT_RATE(BIT_RATE),
     .PAYLOAD_BITS(PAYLOAD_BITS),
     .CLK_HZ(CLK_FREQ)
@@ -284,7 +284,7 @@ uart_tool_rx #(
 //
 // UART Transmitter module.
 //
-uart_tool_tx #(
+uart_tx #(
     .BIT_RATE(BIT_RATE),
     .PAYLOAD_BITS(PAYLOAD_BITS),
     .CLK_HZ(CLK_FREQ)

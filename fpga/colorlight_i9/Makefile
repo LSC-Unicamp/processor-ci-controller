@@ -14,7 +14,10 @@ all: ./build/out.bit
 	yosys -p " \
 		read_verilog main.v; \
 		read_verilog ../../src/*.v; \
-		read_verilog ../../Risco-5/src/core/*.v; \
+		read_verilog ../../modules/Risco-5/src/core/*.v; \
+		read_verilog ../../modules/uart.v; \
+		read_verilog ../../modules/UART/rtl/uart_rx.v; \
+		read_verilog ../../modules/UART/rtl/uart_tx.v; \
 		synth_ecp5 -json ./build/out.json -abc9 \
 	"
 
