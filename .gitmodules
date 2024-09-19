@@ -1,3 +1,9 @@
-[submodule "Risco-5"]
-	path = Risco-5
+[submodule "modules/SPI-Slave"]
+	path = modules/SPI-Slave
+	url = https://github.com/Unicamp-Odhin/SPI-Slave
+[submodule "modules/UART"]
+	path = modules/UART
+	url = https://github.com/ben-marshall/uart
+[submodule "modules/Risco-5"]
+	path = modules/Risco-5
 	url = https://github.com/JN513/Risco-5
