@@ -1,6 +1,6 @@
 module SPI #(
-    parameter BUFFER_SIZE  = 8,
-    parameter PAYLOAD_BITS = 32,
+    parameter BUFFER_SIZE  = 32,
+    parameter PAYLOAD_BITS = 8,
     parameter WORD_SIZE_BY = 4
 )(
     // Timing signals
@@ -20,7 +20,6 @@ module SPI #(
     // FIFOs signals
     output wire tx_fifo_empty,
     output wire rx_fifo_empty,
-    output wire tx_fifo_full,
 
     // BUS control signals
     input wire read,
@@ -54,12 +53,18 @@ assign busy_posedge = (busy_sync[2:1] == 2'b01) ? 1'b1 : 1'b0;
 
 reg [1:0] read_state_machine, write_state_machine;
 
-localparam IDLE   = 2'b00;
-localparam READ   = 2'b01;
-localparam WRITE  = 2'b01;
-localparam WB     = 2'b10;
-localparam FINISH = 2'b11;
+localparam IDLE              = 3'b000;
+localparam READ              = 3'b001;
+localparam WRITE             = 3'b001;
+localparam WB                = 3'b010;
+localparam FINISH            = 3'b011;
+localparam COPY_WRITE_BUFFER = 3'b100;
+localparam COPY_READ_BUFFER  = 3'b100;
 
+/*
+Read state machine:
+    IDLE -> READ -> WB -> FINISH
+*/
 always @(posedge clk ) begin
     rx_fifo_read   <= 1'b0;
     read_response  <= 1'b0;
@@ -77,14 +82,25 @@ always @(posedge clk ) begin
             end
 
             READ: begin
-                if(rx_fifo_empty == 1'b0) begin
-                    state        <= WB;
-                    rx_fifo_read <= 1'b1;
+                if(counter_read < (WORD_SIZE_BY)) begin
+                    if(rx_fifo_empty == 1'b0) begin
+                        read_data <= {read_data[23:0], rx_fifo_read_data};
+                        counter_read <= counter_read + 1'b1;
+                        rx_fifo_read <= 1'b1;
+                        read_state_machine <= COPY_READ_BUFFER;
+                    end
+                end else begin
+                    read_data <= {read_data[23:0], rx_fifo_read_data};
+                    read_state_machine <= WB;
                 end
             end
 
+            COPY_READ_BUFFER: begin
+                read_state_machine <= READ;
+            end
+
             WB: begin
-                read_data          <= rx_fifo_read;
+                read_response      <= 1'b1;
                 read_state_machine <= FINISH;
             end
 
@@ -98,6 +114,11 @@ always @(posedge clk ) begin
     end 
 end
 
+/*
+Write state machine:
+    IDLE -> COPY_WRITE_BUFFER -> WRITE -> WB -> FINISH
+*/
+
 always @(posedge clk ) begin
     tx_fifo_write  <= 1'b0;
     read_response  <= 1'b0;
@@ -108,16 +129,33 @@ always @(posedge clk ) begin
         case (write_state_machine)
             IDLE: begin
                 if(write) begin
-                    write_state_machine <= WRITE;
+                    write_state_machine <= COPY_WRITE_BUFFER;
                     data_to_send        <= write_data;
                 end else begin
                     write_state_machine <= IDLE;
                 end
             end
 
+            COPY_WRITE_BUFFER: begin
+                write_data_buffer   <= write_data;
+                write_state_machine <= WRITE;
+            end
+
             WRITE: begin
-                tx_fifo_write_data  <= data_to_send;
-                tx_fifo_write       <= 1'b1;
+                if(counter_write < WORD_SIZE_BY) begin
+                    if(tx_fifo_full == 1'b0) begin
+                        tx_fifo_write_data <= write_data_buffer[31:24];
+                        write_data_buffer  <= {write_data_buffer[23:0], 8'h00};
+                        counter_write      <= counter_write + 1'b1;
+                        tx_fifo_write      <= 1'b1;
+                    end
+                end else begin
+                    write_state_machine <= WB;
+                end
+            end
+
+            WB: begin
+                write_response      <= 1'b1;
                 write_state_machine <= FINISH;
             end
 

@@ -19,7 +19,6 @@ module UART #(
     output reg read_response,
     output reg write_response,
 
-    input wire [31:0] address,
     input wire [31:0] write_data,
     output reg [31:0] read_data
 );
@@ -153,16 +152,16 @@ always @(posedge clk ) begin
 
             COPY_WRITE_BUFFER: begin
                 write_data_buffer <= write_data;
-                state_write <= WRITE;
+                state_write       <= WRITE;
             end
 
             WRITE: begin
                 if(counter_write < WORD_SIZE_BY) begin
                     if(tx_fifo_full == 1'b0) begin
                         tx_fifo_write_data <= write_data_buffer[31:24];
-                        write_data_buffer <= {write_data_buffer[23:0], 8'h00};
-                        counter_write <= counter_write + 1'b1;
-                        tx_fifo_write <= 1'b1;
+                        write_data_buffer  <= {write_data_buffer[23:0], 8'h00};
+                        counter_write      <= counter_write + 1'b1;
+                        tx_fifo_write      <= 1'b1;
                     end
                 end else begin
                     state_write <= WB;
@@ -171,12 +170,12 @@ always @(posedge clk ) begin
 
             WB: begin
                 write_response <= 1'b1;
-                state_write <= FINISH;
+                state_write    <= FINISH;
             end
 
             FINISH: begin
                 write_response <= 1'b1;
-                state_write <= IDLE;
+                state_write    <= IDLE;
             end
 
             default: state_write <= IDLE;
