@@ -1,10 +1,23 @@
 module top (
+    // Timing pins
     input  wire clk, // 25 mhz
     input  wire reset,
+
+    // UART pins
     input  wire rx,
     output wire tx,
+
+    // SPI pins
+    input wire sck,
+    input wire cs,
+    input wire mosi,
+    output wire miso,
+
+    //SPI control pins
+    input wire rw,
+    output wire intr,
+
     output wire [7:0]led,
-    input  wire [5:0]gpios
 );
 
 wire clk_core, reset_core, core_memory_response, reset_o,
@@ -37,6 +50,14 @@ Controller #(
 
     .tx(tx),
     .rx(rx),
+
+    .sck (sck),
+    .cs  (cs),
+    .mosi(mosi),
+    .miso(miso),
+
+    .rw  (rw),
+    .intr(intr),
 
     .clk_core  (clk_core),
     .reset_core(reset_core),

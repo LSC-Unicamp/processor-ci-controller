@@ -14,7 +14,18 @@ module Controller #(
     input wire clk,
     input wire reset,
 
-    // saida para serial
+    // SPI signals
+    input wire sck,
+    input wire cs,
+    input wire mosi,
+    input wire miso,
+
+    // SPI callback signals
+    input wire rw,
+    output wire intr,
+
+
+    // UART signals
     input wire rx,
     output wire tx,
 
@@ -46,9 +57,9 @@ module Controller #(
 );
 
 // UART Wires
-wire uart_read, uart_write, uart_read_response, uart_write_response,
-    uart_rx_empty, uart_tx_empty;
-wire [31:0] uart_read_data, uart_write_data;
+wire communication_read, communication_write, communication_read_response, communication_write_response,
+    communication_rx_empty, communication_tx_empty;
+wire [31:0] communication_read_data, communication_write_data;
 
 // Clock Divider Wires
 wire write_pulse, clk_enable;
@@ -139,18 +150,18 @@ Interpreter #(
     .reset(reset),
 
     // uart buffer signal
-    .uart_rx_empty(uart_rx_empty),
-    .uart_tx_empty(uart_tx_empty),
+    .communication_rx_empty(communication_rx_empty),
+    .communication_tx_empty(communication_tx_empty),
 
     // uart control signal
-    .uart_read (uart_read),
-    .uart_write(uart_write),
-    .uart_read_response (uart_read_response),
-    .uart_write_response(uart_write_response),
+    .communication_read (communication_read),
+    .communication_write(communication_write),
+    .communication_read_response (communication_read_response),
+    .communication_write_response(communication_write_response),
 
     // uart data signal
-    .uart_read_data (uart_read_data),
-    .uart_write_data(uart_write_data),
+    .communication_read_data (communication_read_data),
+    .communication_write_data(communication_write_data),
 
     // core signals
     .core_clk_enable(clk_enable),
@@ -186,20 +197,20 @@ UART #(
     .clk  (clk),
     .reset(reset),
 
-    .uart_rx_empty(uart_rx_empty),
-    .uart_tx_empty(uart_tx_empty),
+    .uart_rx_empty(communication_rx_empty),
+    .uart_tx_empty(communication_tx_empty),
     
     .rx(rx),
     .tx(tx),
 
-    .read (uart_read),
-    .write(uart_write),
-    .read_response (uart_read_response),
-    .write_response(uart_write_response),
+    .read (communication_read),
+    .write(communication_write),
+    .read_response (communication_read_response),
+    .write_response(communication_write_response),
 
     .address   (32'h00000000),
-    .write_data(uart_write_data),
-    .read_data (uart_read_data)
+    .write_data(communication_write_data),
+    .read_data (communication_read_data)
 );
 
 Memory #(

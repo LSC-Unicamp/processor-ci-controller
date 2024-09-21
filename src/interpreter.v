@@ -9,17 +9,17 @@ module Interpreter #(
     input wire clk,
     input wire reset,
 
-    // UART 
-    input wire uart_rx_empty,
-    input wire uart_tx_empty,
+    // communication 
+    input wire communication_rx_empty,
+    input wire communication_tx_empty,
 
-    output reg uart_read,
-    output reg uart_write,
-    input wire uart_read_response,
-    input wire uart_write_response,
+    output reg communication_read,
+    output reg communication_write,
+    input wire communication_read_response,
+    input wire communication_write_response,
 
-    input wire [31:0] uart_read_data,
-    output reg [31:0] uart_write_data,
+    input wire [31:0] communication_read_data,
+    output reg [31:0] communication_write_data,
 
     // Core signals
     output reg core_clk_enable,
@@ -52,7 +52,7 @@ localparam DELAY_CYCLES             = 'd30;
 
 reg [7:0] state, counter, return_state;
 reg [23:0] num_of_pages, num_of_positions;
-reg [31:0] uart_buffer, read_buffer, timeout, timeout_counter;
+reg [31:0] communication_buffer, read_buffer, timeout, timeout_counter;
 reg [63:0] accumulator, temp_buffer;
 
 localparam IDLE                                = 8'b00000000;
@@ -114,8 +114,8 @@ initial begin
 end
 
 always @(posedge clk) begin
-    uart_read       <= 1'b0;
-    uart_write      <= 1'b0;
+    communication_read       <= 1'b0;
+    communication_write      <= 1'b0;
     core_reset      <= 1'b0;
     write_pulse     <= 1'b0;
     memory_read     <= 1'b0;
@@ -123,23 +123,23 @@ always @(posedge clk) begin
     reset_bus       <= 1'b0;
 
     if(reset == 1'b1) begin
-        state               <= IDLE;
-        uart_buffer         <= 32'h0;
-        accumulator         <= 64'h0;
-        counter             <= 8'h00;
-        core_clk_enable     <= 1'b0;
-        memory_mux_selector <= 1'b0;
-        return_state        <= IDLE;
-        num_of_pages        <= 24'h0;
-        timeout_counter     <= 8'h00;
-        reset_bus           <= 1'b1;
-        bus_mode            <= 1'b0;
-        end_position        <= 32'h0;
+        state                <= IDLE;
+        communication_buffer <= 32'h0;
+        accumulator          <= 64'h0;
+        counter              <= 8'h00;
+        core_clk_enable      <= 1'b0;
+        memory_mux_selector  <= 1'b0;
+        return_state         <= IDLE;
+        num_of_pages         <= 24'h0;
+        timeout_counter      <= 8'h00;
+        reset_bus            <= 1'b1;
+        bus_mode             <= 1'b0;
+        end_position         <= 32'h0;
     end else begin
         case (state)
             IDLE: begin
                 counter <= 8'h00;
-                if(uart_rx_empty == 1'b0) begin
+                if(communication_rx_empty == 1'b0) begin
                     state <= FETCH;
                 end
                 else begin
@@ -148,10 +148,10 @@ always @(posedge clk) begin
             end 
 
             FETCH: begin
-                uart_read <= 1'b1;
-                uart_buffer <= uart_read_data;
+                communication_read <= 1'b1;
+                communication_buffer <= communication_read_data;
 
-                if(uart_read_response == 1'b1) begin
+                if(communication_read_response == 1'b1) begin
                     state <= DECODE;
                 end else begin
                     state <= FETCH;
@@ -160,7 +160,7 @@ always @(posedge clk) begin
 
             DECODE: begin
                 return_state <= IDLE;
-                case (uart_buffer[7:0])
+                case (communication_buffer[7:0])
                     WRITE_CLK: state <= WRITE_CLK;
                     STOP_CLK: state <= STOP_CLK;
                     RESUME_CLK: state <= RESUME_CLK;
@@ -190,7 +190,7 @@ always @(posedge clk) begin
 
             WRITE_CLK: begin
                 core_clk_enable <= 1'b1;
-                num_of_cycles_to_pulse <= {8'h00, uart_buffer[31:8]};
+                num_of_cycles_to_pulse <= {8'h00, communication_buffer[31:8]};
                 write_pulse <= 1'b1;
                 state <= IDLE;
             end
@@ -232,9 +232,9 @@ always @(posedge clk) begin
 
             WRITE_IN_MEMORY: begin
                 memory_mux_selector <= 1'b0;
-                address <= {6'h0, uart_buffer[31:8], 2'b0};
+                address <= {6'h0, communication_buffer[31:8], 2'b0};
 
-                if(uart_rx_empty == 1'b0) begin
+                if(communication_rx_empty == 1'b0) begin
                     state <= READ_SECOND_PAGE_FROM_SERIAL;
                 end else begin
                     state <= WRITE_IN_MEMORY;
@@ -242,10 +242,10 @@ always @(posedge clk) begin
             end
 
             READ_SECOND_PAGE_FROM_SERIAL: begin
-                uart_read <= 1'b1;
-                uart_buffer <= uart_read_data;
+                communication_read <= 1'b1;
+                communication_buffer <= communication_read_data;
 
-                if(uart_read_response == 1'b1) begin
+                if(communication_read_response == 1'b1) begin
                     state <= SAVE_SECOND_WORD_IN_MEMORY;
                 end else begin
                     state <= READ_SECOND_PAGE_FROM_SERIAL;
@@ -254,36 +254,36 @@ always @(posedge clk) begin
 
             SAVE_SECOND_WORD_IN_MEMORY: begin
                 memory_mux_selector <= 1'b0;
-                write_data <= uart_buffer[31:0];
+                write_data <= communication_buffer[31:0];
                 memory_write <= 1'b1;
                 state <= IDLE;
             end
 
             READ_FROM_MEMORY: begin
                 memory_mux_selector <= 1'b0;
-                address <= {6'h0, uart_buffer[31:8], 2'b0};
+                address <= {6'h0, communication_buffer[31:8], 2'b0};
                 memory_read <= 1'b1;
                 state <= MEMORY_READ;
             end
 
             LOAD_UPPER_ACUMULATOR: begin
-                accumulator <= {32'h0, uart_buffer[31:8], accumulator[7:0]};
+                accumulator <= {32'h0, communication_buffer[31:8], accumulator[7:0]};
                 state <= IDLE;
             end
 
             LOAD_LOWER_ACUMULATOR: begin
-                accumulator <= {accumulator[63:8], uart_buffer[15:8]};
+                accumulator <= {accumulator[63:8], communication_buffer[15:8]};
                 state <= IDLE;
             end
 
             ADD_N_TO_ACUMULATOR: begin
-                accumulator <= accumulator + {{40{uart_buffer[31]}}, uart_buffer[31:8]};
+                accumulator <= accumulator + {{40{communication_buffer[31]}}, communication_buffer[31:8]};
                 state <= IDLE;
             end
 
             WRITE_ACUMULATOR_IN_POS_N: begin
                 memory_mux_selector <= 1'b0;
-                address <= {6'h0, uart_buffer[31:8], 2'b0}; // ver alinhamento depois
+                address <= {6'h0, communication_buffer[31:8], 2'b0}; // ver alinhamento depois
                 write_data <= accumulator[31:0];
                 memory_write <= 1'b1;
                 state <= IDLE;
@@ -292,14 +292,14 @@ always @(posedge clk) begin
             WRITE_N_IN_POS_ACUMULATOR: begin
                 memory_mux_selector <= 1'b0;
                 address <= accumulator[31:0]; // ver alinhamento depois
-                write_data <= {8'h0, uart_buffer[31:8]};
+                write_data <= {8'h0, communication_buffer[31:8]};
                 memory_write <= 1'b1;
                 state <= IDLE;
             end
 
             READ_ACUMULATOR_POS_IN_MEMORY: begin
                 memory_mux_selector <= 1'b0;
-                address <= accumulator[31:0] + {6'h0, uart_buffer[31:8], 2'b0}; // ver alinhamento depois
+                address <= accumulator[31:0] + {6'h0, communication_buffer[31:8], 2'b0}; // ver alinhamento depois
                 memory_read <= 1'b1;
                 state <= MEMORY_READ;
                 return_state <= IDLE;
@@ -311,12 +311,12 @@ always @(posedge clk) begin
             end
 
             SET_TIMEOUT: begin
-                timeout <= {8'h0, uart_buffer[31:8]};
+                timeout <= {8'h0, communication_buffer[31:8]};
                 state <= IDLE;
             end
 
             SET_MEMORY_PAGE_SIZE: begin
-                memory_page_size <= uart_buffer[31:8];
+                memory_page_size <= communication_buffer[31:8];
                 state <= IDLE;
             end
 
@@ -333,7 +333,7 @@ always @(posedge clk) begin
             end
 
             DEFINE_N_AS_PROGRAM_FINISH_POSITION: begin
-                end_position <= {6'h00, uart_buffer[31:8], 2'b00};
+                end_position <= {6'h00, communication_buffer[31:8], 2'b00};
                 state <= IDLE;
             end
 
@@ -349,7 +349,7 @@ always @(posedge clk) begin
 
             WRITE_NEXT_N_WORDS_FROM_ACUMULATOR: begin
                 memory_mux_selector <= 1'b0;
-                num_of_positions <= {8'h0, uart_buffer[31:8]};
+                num_of_positions <= {8'h0, communication_buffer[31:8]};
                 temp_buffer <= accumulator;
                 state <= MEMORY_WRITE_LOOP;
             end
@@ -366,10 +366,10 @@ always @(posedge clk) begin
             end
 
             READ_WORD_FROM_SERIAL: begin
-                uart_read <= 1'b1;
-                uart_buffer <= uart_read_data;
+                communication_read <= 1'b1;
+                communication_buffer <= communication_read_data;
 
-                if(uart_read_response == 1'b1) begin
+                if(communication_read_response == 1'b1) begin
                     state <= SAVE_WORD;
                 end else begin
                     state <= READ_WORD_FROM_SERIAL;
@@ -378,7 +378,7 @@ always @(posedge clk) begin
 
             SAVE_WORD: begin
                 memory_mux_selector <= 1'b0;
-                write_data <= uart_buffer[31:0];
+                write_data <= communication_buffer[31:0];
                 memory_write <= 1'b1;
 
                 state <= MEMORY_WRITE_LOOP;
@@ -387,7 +387,7 @@ always @(posedge clk) begin
 
             READ_NEXT_N_WORDS_FROM_ACUMULATOR: begin
                 memory_mux_selector <= 1'b0;
-                num_of_positions    <= {8'h0, uart_buffer[31:8]};
+                num_of_positions    <= {8'h0, communication_buffer[31:8]};
                 temp_buffer         <= accumulator;
                 state               <= MEMORY_READ_LOOP;
             end
@@ -411,13 +411,13 @@ always @(posedge clk) begin
             end
 
             SEND_READ_BUFFER: begin
-                uart_write_data <= read_buffer;
-                uart_write <= 1'b1;
+                communication_write_data <= read_buffer;
+                communication_write <= 1'b1;
                 state <= WAIT_WRITE_RESPONSE;
             end
 
             WAIT_WRITE_RESPONSE: begin
-                if(uart_write_response == 1'b1) begin
+                if(communication_write_response == 1'b1) begin
                     state <= return_state;
                 end else begin
                     state <= WAIT_WRITE_RESPONSE;
@@ -426,7 +426,7 @@ always @(posedge clk) begin
 
             RUN_TESTS: begin
                 memory_mux_selector <= 1'b0;
-                num_of_pages        <= uart_buffer[31:8];
+                num_of_pages        <= communication_buffer[31:8];
                 bus_mode            <= 1'b1;
                 memory_page_number  <= 24'h0;
                 state               <= RUN_TESTS_INIT;

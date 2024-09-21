@@ -1,9 +1,19 @@
 module top (
     input  wire clk,
+    input  wire reset,
+
     input  wire rx,
     output wire tx,
+
     output wire [3:0]led,
-    input  wire [3:0]btn
+    
+    input wire cs,
+    input wire mosi,
+    input wire sck,
+    output wire miso,
+
+    input wire rw,
+    output wire intr
 );
 
 reg clk_o;
@@ -39,6 +49,14 @@ Controller #(
 
     .tx(tx),
     .rx(rx),
+
+    .sck (sck),
+    .cs  (cs),
+    .mosi(mosi),
+    .miso(miso),
+
+    .rw  (rw),
+    .intr(intr),
 
     .clk_core  (clk_core),
     .reset_core(reset_core),

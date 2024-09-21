@@ -1,7 +1,7 @@
 read_verilog "main.v"
-read_verilog ../../src/uart.v
-read_verilog ../../src/uart_rx.v
-read_verilog ../../src/uart_tx.v
+read_verilog ../../modules/uart.v
+read_verilog ../../modules/UART/rtl/uart_rx.v
+read_verilog ../../modules/UART/rtl/uart_tx.v
 read_verilog ../../src/fifo.v
 read_verilog ../../src/reset.v
 read_verilog ../../src/clk_divider.v
