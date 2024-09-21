@@ -17,3 +17,5 @@ site/
 build/
 webtalk*.log
 webtalk*.jou
+fpga/digilent_arty/usage_statistics_webtalk.xml
+fpga/digilent_arty/usage_statistics_webtalk.html

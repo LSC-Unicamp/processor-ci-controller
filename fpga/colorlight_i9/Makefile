@@ -21,6 +21,9 @@ all: ./build/out.bit
 		synth_ecp5 -json ./build/out.json -abc9 \
 	"
 
+#read_verilog ../../modules/spi.v; \
+#read_verilog ../../modules/SPI-Slave/rtl/spi_slave.v; \
+
 buildFolder:
 	mkdir -p build
 

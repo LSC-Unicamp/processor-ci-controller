@@ -208,11 +208,38 @@ UART #(
     .read_response (communication_read_response),
     .write_response(communication_write_response),
 
-    .address   (32'h00000000),
     .write_data(communication_write_data),
     .read_data (communication_read_data)
 );
+/*
+SPI #(
+    .PAYLOAD_BITS(PAYLOAD_BITS),
+    .BUFFER_SIZE (BUFFER_SIZE),
+    .WORD_SIZE_BY(WORD_SIZE_BY)
+) Spi(
+    .clk  (clk),
+    .reset(reset),
 
+    .sck (sck),
+    .cs  (cs),
+    .mosi(mosi),
+    .miso(miso),
+
+    .rw  (rx),
+    .intr(intr),
+
+    .rx_fifo_empty(communication_rx_empty),
+    .tx_fifo_empty(communication_tx_empty),
+
+    .read (communication_read),
+    .write(communication_write),
+    .read_response (communication_read_response),
+    .write_response(communication_write_response),
+
+    .write_data(communication_write_data),
+    .read_data (communication_read_data)
+);
+*/
 Memory #(
     .MEMORY_FILE(MEMORY_FILE),
     .MEMORY_SIZE(MEMORY_SIZE)

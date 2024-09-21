@@ -1,7 +1,9 @@
 read_verilog "main.v"
-read_verilog ../../modules/uart.v
-read_verilog ../../modules/UART/rtl/uart_rx.v
-read_verilog ../../modules/UART/rtl/uart_tx.v
+#read_verilog ../../modules/uart.v
+#read_verilog ../../modules/UART/rtl/uart_rx.v
+#read_verilog ../../modules/UART/rtl/uart_tx.v
+read_verilog ../../modules/spi.v;
+read_verilog ../../modules/SPI-Slave/rtl/spi_slave.v;
 read_verilog ../../src/fifo.v
 read_verilog ../../src/reset.v
 read_verilog ../../src/clk_divider.v
@@ -9,16 +11,16 @@ read_verilog ../../src/memory.v
 read_verilog ../../src/interpreter.v
 read_verilog ../../src/controller.v
 
-read_verilog ../../Risco-5/src/core/alu_control.v
-read_verilog ../../Risco-5/src/core/alu.v
-read_verilog ../../Risco-5/src/core/control_unit.v
-read_verilog ../../Risco-5/src/core/core.v
-read_verilog ../../Risco-5/src/core/immediate_generator.v
-read_verilog ../../Risco-5/src/core/mux.v
-read_verilog ../../Risco-5/src/core/pc.v
-read_verilog ../../Risco-5/src/core/registers.v
-read_verilog ../../Risco-5/src/core/csr_unit.v
-read_verilog ../../Risco-5/src/core/mdu.v
+read_verilog ../../modules/Risco-5/src/core/alu_control.v
+read_verilog ../../modules/Risco-5/src/core/alu.v
+read_verilog ../../modules/Risco-5/src/core/control_unit.v
+read_verilog ../../modules/Risco-5/src/core/core.v
+read_verilog ../../modules/Risco-5/src/core/immediate_generator.v
+read_verilog ../../modules/Risco-5/src/core/mux.v
+read_verilog ../../modules/Risco-5/src/core/pc.v
+read_verilog ../../modules/Risco-5/src/core/registers.v
+read_verilog ../../modules/Risco-5/src/core/csr_unit.v
+read_verilog ../../modules/Risco-5/src/core/mdu.v
 
 
 read_xdc "digilent_arty.xdc"

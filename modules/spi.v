@@ -217,16 +217,15 @@ always @(posedge clk ) begin
                 readed     <= 1'b0;
                 data_in    <= tx_fifo_read_data;
 
-                if(zero == 1'b1) begin
-                    zero   <= 1'b0;
-                    reload <= 1'b1;
+                if(readed_trash == 1'b1) begin
+                    readed_trash <= 1'b0;
+                    reload       <= 1'b1;
                 end
             end 
         endcase
     end
 end
 
-// Read from uart and insert in RX queue
 always @(posedge clk ) begin
     rx_fifo_write <= 1'b0;
 
