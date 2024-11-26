@@ -1,4 +1,6 @@
-VIVADO_PATH = ${VIVADO_PATH}
+ifndef VIVADO_PATH
+	VIVADO_PATH=vivado
+endif
 
 all: ./build/out.bit
 

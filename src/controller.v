@@ -196,12 +196,12 @@ UART #(
 ) Uart(
     .clk  (clk),
     .reset(reset),
-
-    .uart_rx_empty(communication_rx_empty),
-    .uart_tx_empty(communication_tx_empty),
     
     .rx(rx),
     .tx(tx),
+
+    .uart_rx_empty(communication_rx_empty),
+    .uart_tx_empty(communication_tx_empty),
 
     .read (communication_read),
     .write(communication_write),

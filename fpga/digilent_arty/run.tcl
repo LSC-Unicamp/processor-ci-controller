@@ -1,9 +1,9 @@
 read_verilog "main.v"
-#read_verilog ../../modules/uart.v
-#read_verilog ../../modules/UART/rtl/uart_rx.v
-#read_verilog ../../modules/UART/rtl/uart_tx.v
-read_verilog ../../modules/spi.v;
-read_verilog ../../modules/SPI-Slave/rtl/spi_slave.v;
+read_verilog ../../modules/uart.v
+read_verilog ../../modules/UART/rtl/uart_rx.v
+read_verilog ../../modules/UART/rtl/uart_tx.v
+#read_verilog ../../modules/spi.v;
+#read_verilog ../../modules/SPI-Slave/rtl/spi_slave.v;
 read_verilog ../../src/fifo.v
 read_verilog ../../src/reset.v
 read_verilog ../../src/clk_divider.v
@@ -48,5 +48,6 @@ report_power -file digilent_arty_a7_power.rpt
 
 # write bitstream
 write_bitstream -force "./build/out.bit"
-
+#210203A7C2EE fpga 1
+#210203A7C654 fpga 2exit
 exit

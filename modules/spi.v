@@ -14,7 +14,7 @@ module SPI #(
     input wire miso,
 
     // SPI callback signals
-    input wire rw,
+    input wire  rw,
     output wire intr,
 
     // FIFOs signals
@@ -51,7 +51,7 @@ wire rst, busy, data_out_valid, busy_posedge;
 
 assign busy_posedge = (busy_sync[2:1] == 2'b01) ? 1'b1 : 1'b0;
 
-reg [1:0] read_state_machine, write_state_machine;
+reg [2:0] read_state_machine, write_state_machine;
 
 localparam IDLE              = 3'b000;
 localparam READ              = 3'b001;

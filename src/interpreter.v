@@ -232,7 +232,7 @@ always @(posedge clk) begin
 
             WRITE_IN_MEMORY: begin
                 memory_mux_selector <= 1'b0;
-                address <= {6'h0, communication_buffer[31:8], 2'b0};
+                address <= {communication_buffer[31], 6'h0, communication_buffer[30:8], 2'b0};
 
                 if(communication_rx_empty == 1'b0) begin
                     state <= READ_SECOND_PAGE_FROM_SERIAL;
@@ -261,7 +261,7 @@ always @(posedge clk) begin
 
             READ_FROM_MEMORY: begin
                 memory_mux_selector <= 1'b0;
-                address <= {6'h0, communication_buffer[31:8], 2'b0};
+                address <= {communication_buffer[31], 6'h0, communication_buffer[30:8], 2'b0};
                 memory_read <= 1'b1;
                 state <= MEMORY_READ;
             end
@@ -283,7 +283,7 @@ always @(posedge clk) begin
 
             WRITE_ACUMULATOR_IN_POS_N: begin
                 memory_mux_selector <= 1'b0;
-                address <= {6'h0, communication_buffer[31:8], 2'b0}; // ver alinhamento depois
+                address <= {communication_buffer[31], 6'h0, communication_buffer[30:8], 2'b0}; // ver alinhamento depois
                 write_data <= accumulator[31:0];
                 memory_write <= 1'b1;
                 state <= IDLE;
