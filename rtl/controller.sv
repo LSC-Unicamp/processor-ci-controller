@@ -146,8 +146,7 @@ assign data_mem_data_o = (memory_mux_selector) ? data_memory_read_data : 32'h000
 // Bus Logic - Interpreter
 // Interpreter memory response
 assign interpreter_memory_response = (!memory_mux_selector) ? (interpreter_memory_address[31]) ? data_memory_ack : memory_ack : 1'b0;
-assign interpreter_memory_read = (!memory_mux_selector) ? (interpreter_memory_address[31]) ? data_memory_cyc : memory_cyc : 1'b0;
-
+assign interpreter_memory_read_data = (!memory_mux_selector) ? (interpreter_memory_address[31]) ? data_memory_read_data : memory_read_data : 32'h00000000;
 
 // Bus internal
 logic finish_execution;
@@ -257,8 +256,8 @@ UART #(
     .read_response  (communication_read_response),
     .write_response (communication_write_response),
 
-    .write_data     (communication_read_data),
-    .read_data      (communication_write_data)
+    .write_data     (communication_write_data),
+    .read_data      (communication_read_data)
 );
 
 Memory #(

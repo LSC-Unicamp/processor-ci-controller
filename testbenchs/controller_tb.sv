@@ -1,3 +1,5 @@
+`timescale 1ns / 1ns
+
 module controller_tb();
 
 reg clk, rx, rst_n;
