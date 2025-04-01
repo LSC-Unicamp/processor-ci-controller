@@ -1,15 +1,27 @@
+ifndef VIVADO_PATH
+	VIVADO=vivado
+else
+	VIVADO=$(VIVADO_PATH)/vivado
+endif
+
 all: ./build/out.bit
 
 ./build/out.bit: buildFolder
-	vivado -mode batch -nolog -nojournal -source run.tcl
+	$(VIVADO) -mode batch -nolog -nojournal -source run.tcl
 buildFolder:
 	mkdir -p build
+	mkdir -p reports
 
 clean:
 	rm -rf build
-	rm clockInfo.txt
+	rm -rf clockInfo.txt
+	rm -rf .Xil
+	rm -rf reports
 
-flash:
+load:
 	openFPGALoader -b nexys_a7_100 ./build/out.bit
 
-run_all: ./build/out.bit flash
+flash:
+	openFPGALoader -b nexys_a7_100 -f ./build/out.bit
+
+run_all: ./build/out.bit load
