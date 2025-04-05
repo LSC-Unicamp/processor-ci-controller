@@ -3,7 +3,7 @@ module UART #(
     parameter BIT_RATE     = 9600,
     parameter PAYLOAD_BITS = 8,
     parameter BUFFER_SIZE  = 8,
-    parameter WORD_SIZE_BY = 1
+    parameter WORD_SIZE_BY = 4
 ) (
     input  logic clk,
     input  logic rst_n,
@@ -42,7 +42,7 @@ assign uart_tx_empty = tx_fifo_empty;
 
 localparam IDLE               = 4'b0000;
 localparam READ               = 4'b0001;
-localparam WRITE              = 4'b0001;
+localparam WRITE              = 4'b0101;
 localparam WB                 = 4'b0010;
 localparam FINISH             = 4'b0011;
 localparam COPY_WRITE_BUFFER  = 4'b0100;
@@ -75,7 +75,7 @@ always_ff @(posedge clk ) begin
 
             READ: begin
                 if(counter_read < (WORD_SIZE_BY)) begin
-                    if(rx_fifo_empty == 1'b0) begin
+                    if(!rx_fifo_empty) begin
                         read_data <= {read_data[23:0], rx_fifo_data_out};
                         counter_read <= counter_read + 1'b1;
                         rx_fifo_read <= 1'b1;

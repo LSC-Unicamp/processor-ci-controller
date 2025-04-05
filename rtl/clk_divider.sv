@@ -29,7 +29,7 @@ always_ff @(posedge clk or negedge rst_n) begin : CLK_DIVIDER
         clk_counter <= 0;
         clk_o_auto <= 1'b0;
     end else begin
-        if (clk_counter == 0) begin
+        if (~|clk_counter) begin
             clk_o_auto <= 1'b1;
             clk_counter <= clk_counter + 1;
         end else if (clk_counter == {1'b0, divider[COUNTER_BITS-1:1]}) begin

@@ -117,7 +117,7 @@ always @(posedge clk) begin
     reset_bus           <= 1'b0;
 
     if(!rst_n) begin
-        state                <= PING;
+        state                <= IDLE;
         communication_buffer <= 32'h0;
         accumulator          <= 64'h0;
         counter              <= 8'h00;
