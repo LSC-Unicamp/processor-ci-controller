@@ -67,6 +67,7 @@ always_ff @(posedge clk ) begin
             IDLE: begin
                 counter_read <= 3'b000;
                 if(read) begin
+                    read_data  <= 32'h00000000;
                     state_read <= READ;
                 end else begin
                     state_read <= IDLE;
@@ -92,7 +93,6 @@ always_ff @(posedge clk ) begin
             end
 
             WB: begin
-                read_response <= 1'b1;
                 state_read <= FINISH;
             end
 

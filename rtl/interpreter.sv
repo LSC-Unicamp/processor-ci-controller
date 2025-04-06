@@ -146,7 +146,7 @@ always @(posedge clk) begin
                 communication_read   <= 1'b1;
                 communication_buffer <= communication_read_data;
 
-                if(!communication_read_response) begin
+                if(communication_read_response) begin
                     state <= DECODE;
                 end else begin
                     state <= FETCH;
@@ -240,7 +240,7 @@ always @(posedge clk) begin
                 communication_read   <= 1'b1;
                 communication_buffer <= communication_read_data;
 
-                if(!communication_read_response) begin
+                if(communication_read_response) begin
                     state <= SAVE_SECOND_WORD_IN_MEMORY;
                 end else begin
                     state <= READ_SECOND_PAGE_FROM_SERIAL;
@@ -364,7 +364,7 @@ always @(posedge clk) begin
                 communication_read   <= 1'b1;
                 communication_buffer <= communication_read_data;
 
-                if(!communication_read_response) begin
+                if(communication_read_response) begin
                     state <= SAVE_WORD;
                 end else begin
                     state <= READ_WORD_FROM_SERIAL;

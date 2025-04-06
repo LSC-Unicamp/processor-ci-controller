@@ -3,6 +3,11 @@
 module controller_tb();
 
 logic clk, rx, rst_n, tx;
+logic [7:0] tx_data;
+logic tx_en;
+logic tx_busy;
+logic [7:0] tx_data_memory [0:16];
+logic [4:0] pointer;
 
 initial begin
     $dumpfile("build/controller.vcd");
@@ -12,7 +17,7 @@ initial begin
 
     #20 rst_n = 1;
 
-    #3000;
+    #12000;
 
     $finish;
 end
@@ -21,7 +26,7 @@ logic [7:0] uart_rx_data;
 
 always #1 clk = ~clk;
 
-parameter BIT_RATE     = 115200;
+parameter BIT_RATE     = 4000000;
 parameter PAYLOAD_BITS = 8;
 parameter CLK_FREQ     = 50000000;
 
@@ -52,14 +57,10 @@ uart_tx #(
     .uart_tx_data (tx_data) 
 );
 
-logic [7:0] tx_data;
-logic tx_en;
-logic tx_busy;
-
 
 Controller #(
     .CLK_FREQ           (50000000),
-    .BIT_RATE           (115200),
+    .BIT_RATE           (BIT_RATE),
     .PAYLOAD_BITS       (8),
     .BUFFER_SIZE        (8),
     .PULSE_CONTROL_BITS (32),
@@ -102,9 +103,6 @@ Controller #(
 );
 
 
-logic [7:0] tx_data_memory [0:16];
-logic [3:0] pointer;
-
 initial begin
     tx_data_memory[0] = 8'h00;
     tx_data_memory[1] = 8'h00;
@@ -126,14 +124,14 @@ end
 
 
 always_ff @( posedge clk ) begin : TX_DATA_SEND
-    if (rst_n) begin
+    if (!rst_n) begin
         tx_data <= 8'h00;
         pointer <= 0;
     end else begin
-        if (!tx_busy && ~(&pointer)) begin
-            tx_data <= tx_data_memory[pointer];
-            pointer <= pointer + 1;
-            tx_en   <= 1'b1;
+        if (!tx_busy && !pointer[4] && !tx_en) begin
+            tx_data  <= tx_data_memory[pointer];
+            pointer  <= pointer + 1;
+            tx_en    <= 1'b1;
         end else begin
             tx_en   <= 1'b0;
         end
