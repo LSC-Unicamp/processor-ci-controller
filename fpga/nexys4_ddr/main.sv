@@ -5,32 +5,23 @@ module top (
     input  logic rx,
     output logic tx,
 
-    output logic [15:0]LED,
-
     input  logic mosi,
     output logic miso,
     input  logic sck,
-    input  logic cs,
-
-    input  logic [15:0] SW,
-
-    output logic [3:0] VGA_R,
-    output logic [3:0] VGA_G,
-    output logic [3:0] VGA_B,
-    output logic VGA_HS,
-    output logic VGA_VS,
-
-    output logic M_CLK,      // Clock do microfone
-    output logic M_LRSEL,    // Left/Right Select (Escolha do canal)
-
-    input  logic M_DATA      // Dados do microfone
+    input  logic cs
 );
 
-
 logic clk_o;
-
 logic clk_core, rst_core;
 
+// Fios do barramento entre Controller e Processor
+logic core_cyc;
+logic core_stb;
+logic core_we;
+logic [31:0] core_addr;
+logic [31:0] core_data_out;
+logic [31:0] core_data_in;
+logic        core_ack;
 
 Controller #(
     .CLK_FREQ           (50000000),
@@ -67,33 +58,46 @@ Controller #(
     .rst_core_o         (rst_core),
     
     // Barramento padrão (não AXI4-Lite)
-    .core_cyc_i         (),
-    .core_stb_i         (),
-    .core_we_i          (),
-    .core_addr_i        (),
-    .core_data_i        (),
-    .core_data_o        (),
-    .core_ack_o         ()
-    
-    `ifdef ENABLE_SECOND_MEMORY
-    ,
-    // Segunda memória - memória de dados
-    .data_mem_cyc_i     (data_mem_cyc_i),
-    .data_mem_stb_i     (data_mem_stb_i),
-    .data_mem_we_i      (data_mem_we_i),
-    .data_mem_addr_i    (data_mem_addr_i),
-    .data_mem_data_i    (data_mem_data_i),
-    .data_mem_data_o    (data_mem_data_o),
-    .data_mem_ack_o     (data_mem_ack_o)
-    `endif
+    .core_cyc_i         (core_cyc),
+    .core_stb_i         (core_stb),
+    .core_we_i          (core_we),
+    .core_addr_i        (core_addr),
+    .core_data_i        (core_data_out),
+    .core_data_o        (core_data_in),
+    .core_ack_o         (core_ack)
 );
 
+Grande_Risco5 #(
+    .BOOT_ADDRESS           (32'h00000000),
+    .I_CACHE_SIZE           (256),
+    .D_CACHE_SIZE           (256),
+    .DATA_WIDTH             (32),
+    .ADDR_WIDTH             (32),
+    .BRANCH_PREDICTION_SIZE (128)
+) Processor (
+    .clk    (clk_core),
+    .rst_n  (~rst_core),
+    .halt   (1'b0),
 
-always_ff @(posedge clk) begin
-    if(!CPU_RESETN)
+    .cyc_o  (core_cyc),
+    .stb_o  (core_stb),
+    .we_o   (core_we),
+
+    .addr_o (core_addr),
+    .data_o (core_data_out),
+
+    .ack_i  (core_ack),
+    .data_i (core_data_in),
+
+    .interruption (1'b0)
+);
+
+always_ff @(posedge clk) begin : CLOCK_DIVIDER
+    if (!CPU_RESETN) begin
         clk_o <= 1'b0;
-    else
+    end else begin
         clk_o <= ~clk_o;
+    end
 end
-
+    
 endmodule

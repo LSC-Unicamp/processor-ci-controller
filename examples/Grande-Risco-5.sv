@@ -25,7 +25,7 @@ logic        core_ack;
 
 Controller #(
     .CLK_FREQ           (50000000),
-    .BIT_RATE           (BIT_RATE),
+    .BIT_RATE           (115200),
     .PAYLOAD_BITS       (8),
     .BUFFER_SIZE        (8),
     .PULSE_CONTROL_BITS (32),

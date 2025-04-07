@@ -22,3 +22,4 @@ fpga/digilent_arty/usage_statistics_webtalk.html
 fpga/nexys4_ddr/clockInfo.txt
 fpga/nexys4_ddr/usage_statistics_webtalk.html
 fpga/nexys4_ddr/usage_statistics_webtalk.xml
+fpga/nexys4_ddr/tight_setup_hold_pins.txt

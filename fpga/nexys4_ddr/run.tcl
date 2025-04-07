@@ -1,3 +1,29 @@
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/grande_risco5_types.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/alu_control.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/alu.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/bmu.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/branch_prediction.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/cache_request_multiplexer.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/core.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/csr_unit.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/d_cache.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/forwarding_unit.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/fpu.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/Grande_Risco5.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/i_cache.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/immediate_generator.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/ir_decomp.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/mdu.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/mux.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/registers.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/IFID.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/IDEX.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/EXMEM.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/MEMWB.sv
+read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/invalid_ir_check.sv
+read_verilog -sv ../../examples/Grande-Risco-5.sv
+
+
 read_verilog -sv main.sv
 read_verilog -sv ../../modules/uart.sv
 read_verilog ../../modules/UART/rtl/uart_rx.v

@@ -4,3 +4,6 @@
 [submodule "modules/UART"]
 	path = modules/UART
 	url = https://github.com/ben-marshall/uart
+[submodule "modules/Grande-Risco-5"]
+	path = modules/Grande-Risco-5
+	url = https://github.com/JN513/Grande-Risco-5.git
