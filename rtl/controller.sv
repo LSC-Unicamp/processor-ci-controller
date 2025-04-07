@@ -160,7 +160,11 @@ always_ff @(posedge clk ) begin
         finish_execution <= 1'b0;
     else begin 
         if(bus_mode) begin
-            if(core_addr_i[5:0] == end_position[5:0])
+            if(core_addr_i[5:0] == end_position[5:0]
+            `ifdef ENABLE_SECOND_MEMORY
+            || data_mem_addr_i[5:0] == end_position[5:0]
+            `endif
+            )
                 finish_execution <= 1'b1;
         end else begin
             if(core_addr_i == end_position 
@@ -285,15 +289,15 @@ Memory #(
 ) Core_Data_Memory (
     .clk    (clk),
     
-    .cyc_i  (data_memory_cyc_i),
-    .stb_i  (data_memory_stb_i),
-    .we_i   (data_memory_we_i),
+    .cyc_i  (data_memory_cyc),
+    .stb_i  (data_memory_stb),
+    .we_i   (data_memory_we),
 
-    .addr_i (data_memory_addr_i),
-    .data_i (data_memory_data_i),
-    .data_o (data_memory_data_o),
+    .addr_i (data_memory_address),
+    .data_i (data_memory_write_data),
+    .data_o (data_memory_read_data),
 
-    .ack_o  (data_memory_ack_o)
+    .ack_o  (data_memory_ack)
 );
 `endif
 
