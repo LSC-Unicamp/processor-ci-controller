@@ -1,19 +1,22 @@
 ifndef VIVADO_PATH
-	VIVADO_PATH=vivado
+	VIVADO=vivado
+else
+	VIVADO=$(VIVADO_PATH)/vivado
 endif
 
 all: ./build/out.bit
 
 ./build/out.bit: buildFolder
-	@echo "Building the Design..."
-	$(VIVADO_PATH)/vivado  -mode batch -nolog -nojournal -source run.tcl
+	$(VIVADO) -mode batch -nolog -nojournal -source run.tcl
 buildFolder:
-	@echo "Creating the build folder..."
 	mkdir -p build
+	mkdir -p reports
 
 clean:
-	@echo "Cleaning the build folder..."
 	rm -rf build
+	rm -rf clockInfo.txt
+	rm -rf .Xil
+	rm -rf reports
 
 # openFPGALoader funciona apenas na versão nightly, a versão estavel atual não suporta a vc709 ainda
 flash:

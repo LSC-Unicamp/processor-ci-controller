@@ -1,17 +1,27 @@
 module top (
     input  logic clk,
-    input  logic CPU_RESETN,
+    input  logic reset,
 
     input  logic rx,
     output logic tx,
 
+    output logic [3:0]led,
+    
+    input  logic cs,
     input  logic mosi,
-    output logic miso,
     input  logic sck,
-    input  logic cs
+    output logic miso,
+
+    input  logic rw,
+    output logic intr
 );
 
-logic clk_o;
+logic clk_o, rst_n;
+
+initial begin
+    clk_o = 1'b0; // 50mhz
+end
+
 logic clk_core, rst_core;
 
 // Fios do barramento entre Controller e Processor
@@ -37,7 +47,7 @@ Controller #(
     .MEMORY_SIZE        (4096)
 ) u_Controller (
     .clk                (clk_o),
-    .rst_n              (CPU_RESETN),
+    .rst_n              (rst_n),
     
     // SPI signals
     .sck_i              (sck),
@@ -93,11 +103,16 @@ Grande_Risco5 #(
 );
 
 always_ff @(posedge clk) begin : CLOCK_DIVIDER
-    if (!CPU_RESETN) begin
-        clk_o <= 1'b0;
-    end else begin
-        clk_o <= ~clk_o;
-    end
+    clk_o <= ~clk_o;
 end
+
+ResetBootSystem #(
+    .CYCLES(20)
+) ResetBootSystem(
+    .clk     (clk_o),
     
+    .rst_n_o (rst_n)
+);
+    
+
 endmodule

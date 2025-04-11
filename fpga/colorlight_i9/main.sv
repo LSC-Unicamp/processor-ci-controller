@@ -1,30 +1,41 @@
 module top (
-    input  logic clk,
-    input  logic CPU_RESETN,
+    // Timing pins
+    input  logic clk, // 25 mhz
+    input  logic reset,
 
+    // UART pins
     input  logic rx,
     output logic tx,
 
+    // SPI pins
+    input  logic sck,
+    input  logic cs,
     input  logic mosi,
     output logic miso,
-    input  logic sck,
-    input  logic cs
+
+    //SPI control pins
+    input  logic rw,
+    output logic intr,
+
+    output logic [7:0]led
 );
 
-logic clk_o;
+logic rst_n;
 logic clk_core, rst_core;
 
+
 // Fios do barramento entre Controller e Processor
-logic core_cyc;
-logic core_stb;
-logic core_we;
+logic        core_cyc;
+logic        core_stb;
+logic        core_we;
 logic [31:0] core_addr;
 logic [31:0] core_data_out;
 logic [31:0] core_data_in;
 logic        core_ack;
 
+
 Controller #(
-    .CLK_FREQ           (50_000_000),
+    .CLK_FREQ           (25_000_000),
     .BIT_RATE           (115200),
     .PAYLOAD_BITS       (8),
     .BUFFER_SIZE        (8),
@@ -36,8 +47,9 @@ Controller #(
     .MEMORY_FILE        (""),
     .MEMORY_SIZE        (4096)
 ) u_Controller (
-    .clk                (clk_o),
-    .rst_n              (CPU_RESETN),
+    .clk                (clk),
+
+    .rst_n              (rst_n),
     
     // SPI signals
     .sck_i              (sck),
@@ -46,8 +58,8 @@ Controller #(
     .miso_o             (miso),
     
     // SPI callback signals
-    .rw_i               (),
-    .intr_o             (),
+    .rw_i               (rw),
+    .intr_o             (intr),
     
     // UART signals
     .rx                 (rx),
@@ -57,7 +69,7 @@ Controller #(
     .clk_core_o         (clk_core),
     .rst_core_o         (rst_core),
     
-    // Barramento padrão (não AXI4-Lite)
+    // Barramento padrão (Wishbone)
     .core_cyc_i         (core_cyc),
     .core_stb_i         (core_stb),
     .core_we_i          (core_we),
@@ -66,6 +78,8 @@ Controller #(
     .core_data_o        (core_data_in),
     .core_ack_o         (core_ack)
 );
+
+// Core space
 
 Grande_Risco5 #(
     .BOOT_ADDRESS           (32'h00000000),
@@ -92,12 +106,15 @@ Grande_Risco5 #(
     .interruption (1'b0)
 );
 
-always_ff @(posedge clk) begin : CLOCK_DIVIDER
-    if (!CPU_RESETN) begin
-        clk_o <= 1'b0;
-    end else begin
-        clk_o <= ~clk_o;
-    end
-end
+// Reset Inflaestructure
+
+
+ResetBootSystem #(
+    .CYCLES(20)
+) ResetBootSystem(
+    .clk     (clk),
+
+    .rst_n_o (rst_n)
+);
     
 endmodule

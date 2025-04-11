@@ -1,36 +1,25 @@
+all: ./build/colorlight_i9.bit
 
-all: ./build/out.bit
+./build/colorlight_i9.bit: ./build/colorlight_i9.config
+	ecppack --compress --input ./build/colorlight_i9.config  --bit ./build/colorlight_i9.bit
 
-./build/out.bit: ./build/out.config
-	ecppack --compress --input ./build/out.config  --bit ./build/out.bit
+./build/colorlight_i9.config: ./build/colorlight_i9.json
+	nextpnr-ecp5 --json ./build/colorlight_i9.json --write ./build/colorlight_i9_pnr.json --45k \
+		--lpf pinout.lpf --textcfg ./build/colorlight_i9.config --package CABGA381 \
+		--speed 6 --lpf-allow-unconstrained
 
-./build/out.config: ./build/out.json
-	nextpnr-ecp5 --json ./build/out.json --write ./build/out_pnr.json --45k \
-		--lpf pinout.lpf --textcfg ./build/out.config --package CABGA381 \
-		--speed 6 --lpf-allow-unconstrained --report ./build/report_timing.json \
-		--detailed-timing-report 
-
-./build/out.json: main.v pinout.lpf buildFolder
-	yosys -p " \
-		read_verilog main.v; \
-		read_verilog ../../src/*.v; \
-		read_verilog ../../modules/Risco-5/src/core/*.v; \
-		read_verilog ../../modules/uart.v; \
-		read_verilog ../../modules/UART/rtl/uart_rx.v; \
-		read_verilog ../../modules/UART/rtl/uart_tx.v; \
-		synth_ecp5 -json ./build/out.json -abc9 \
-	"
-
-#read_verilog ../../modules/spi.v; \
-#read_verilog ../../modules/SPI-Slave/rtl/spi_slave.v; \
-
-buildFolder:
-	mkdir -p build
+./build/colorlight_i9.json: buildFolder
+	synlig -c run.tcl
 
 clean:
 	rm -rf build
 
-flash:
-	openFPGALoader -b colorlight-i9 ./build/out.bit
+load:
+	openFPGALoader -b colorlight-i9 ./build/colorlight_i9.bit
 
-run_all: ./build/out.bit flash
+
+buildFolder:
+	mkdir -p build
+
+
+run_all: colorlight_i9.bit load
