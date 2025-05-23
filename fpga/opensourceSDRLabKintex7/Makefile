@@ -32,25 +32,35 @@ clean:
 
 load:
 	@echo "Loading the bitstream onto the FPGA..."
-	openFPGALoader -b zedboard $(BISTREAM)
+	openFPGALoader -b opensourceSDRLabKintex7 $(BISTREAM)
 
 flash:
 	@echo "Flashing the bitstream onto the FPGA..."
-	openFPGALoader -b zedboard -f $(BISTREAM)
+	openFPGALoader -b opensourceSDRLabKintex7 -f $(BISTREAM)
 
 remote:
 	@echo "Uploading the bitstream to a remote server..."
 	./upload_remote.sh $(BISTREAM)
 	@echo "Bitstream uploaded to remote server"
 
+generate_ips:
+	@echo "Generating IPs using vivado"
+	mkdir -p ip
+	$(VIVADO) -mode batch -nolog -nojournal -source generate_ip.tcl
+
+remove_ips:
+	@echo "Deleting IPs"
+	rm -rf ip ip_project
+
 help:
 	@echo "Usage: make [target]"
 	@echo "Targets:"
-	@echo "  all        - Build the project and generate the bitstream"
-	@echo "  clean      - Remove build artifacts"
-	@echo "  load       - Load the bitstream onto the FPGA"
-	@echo "  flash      - Flash the bitstream onto the FPGA"
-	@echo "  remote     - Upload the bitstream to a remote server"
-	@echo "  help       - Show this help message"
+	@echo "  all         - Build the project and generate the bitstream"
+	@echo "  clean       - Remove build artifacts"
+	@echo "  load        - Load the bitstream onto the FPGA"
+	@echo "  flash       - Flash the bitstream onto the FPGA"
+	@echo "  remote      - Upload the bitstream to a remote server"
+	@echo "  generate_ip - Generate IPs used in project"
+	@echo "  help        - Show this help message"
 
 run_all: $(BISTREAM) load

@@ -1,14 +1,16 @@
 module top (
     input  logic clk,
-    input  logic rst,
+    input  logic rst_n,
 
-    input  logic rx,
-    output logic tx,
+    input  logic rxd,
+    output logic txd,
 
     input  logic mosi,
     output logic miso,
     input  logic sck,
-    input  logic cs
+    input  logic cs,
+
+    output logic [7:0] led
 );
 
 logic clk_core, rst_core;
@@ -30,13 +32,13 @@ Controller #(
     .PULSE_CONTROL_BITS (32),
     .BUS_WIDTH          (32),
     .WORD_SIZE_BY       (4),
-    .ID                 (32'h7700006A),
+    .ID                 (32'h4B494E54),
     .RESET_CLK_CYCLES   (20),
     .MEMORY_FILE        (""),
-    .MEMORY_SIZE        (4096)
+    .MEMORY_SIZE        (448 * 1024 / 2)
 ) u_Controller (
     .clk                (clk),
-    .rst_n              (!rst),
+    .rst_n              (rst_n),
     
     // SPI signals
     .sck_i              (sck),
@@ -49,8 +51,8 @@ Controller #(
     .intr_o             (),
     
     // UART signals
-    .rx                 (rx),
-    .tx                 (tx),
+    .rx                 (rxd),
+    .tx                 (txd),
     
     // Clock, reset, and bus signals
     .clk_core_o         (clk_core),

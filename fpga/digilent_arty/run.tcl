@@ -21,7 +21,6 @@ read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/IDEX.sv
 read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/EXMEM.sv
 read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/MEMWB.sv
 read_verilog -sv ../../modules/Grande-Risco-5/rtl/core/invalid_ir_check.sv
-read_verilog -sv ../../examples/Grande-Risco-5.sv
 
 
 read_verilog -sv main.sv
@@ -34,6 +33,7 @@ read_verilog -sv ../../rtl/clk_divider.sv
 read_verilog -sv ../../rtl/memory.sv
 read_verilog -sv ../../rtl/interpreter.sv
 read_verilog -sv ../../rtl/controller.sv
+read_verilog -sv ../../rtl/timer.sv
 
 set_param general.maxThreads 16
 

@@ -21,7 +21,6 @@ yosys read_systemverilog -defer -I./ -I/eda/processadores/Grande-Risco-5/rtl/cor
 yosys read_systemverilog -defer -I./ -I/eda/processadores/Grande-Risco-5/rtl/core ../../modules/Grande-Risco-5/rtl/core/EXMEM.sv
 yosys read_systemverilog -defer -I./ -I/eda/processadores/Grande-Risco-5/rtl/core ../../modules/Grande-Risco-5/rtl/core/MEMWB.sv
 yosys read_systemverilog -defer -I./ -I/eda/processadores/Grande-Risco-5/rtl/core ../../modules/Grande-Risco-5/rtl/core/invalid_ir_check.sv
-yosys read_systemverilog -defer -I./ -I/eda/processadores/Grande-Risco-5/rtl/core ../../examples/Grande-Risco-5.sv
 
 
 yosys read_systemverilog -defer -I./ -I/eda/processadores/Grande-Risco-5/rtl/core main.sv
@@ -34,6 +33,7 @@ yosys read_systemverilog -defer -I./ -I/eda/processadores/Grande-Risco-5/rtl/cor
 yosys read_systemverilog -defer -I./ -I/eda/processadores/Grande-Risco-5/rtl/core ../../rtl/memory.sv
 yosys read_systemverilog -defer -I./ -I/eda/processadores/Grande-Risco-5/rtl/core ../../rtl/interpreter.sv
 yosys read_systemverilog -defer -I./ -I/eda/processadores/Grande-Risco-5/rtl/core ../../rtl/controller.sv
+yosys read_systemverilog -defer -I./ -I/eda/processadores/Grande-Risco-5/rtl/core ../../rtl/timer.sv
 
 yosys read_systemverilog -link
 

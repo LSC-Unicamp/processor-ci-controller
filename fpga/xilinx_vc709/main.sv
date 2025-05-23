@@ -35,7 +35,7 @@ Controller #(
     .ID                 (32'h7706C06A),
     .RESET_CLK_CYCLES   (20),
     .MEMORY_FILE        (""),
-    .MEMORY_SIZE        (4096)
+    .MEMORY_SIZE        (512 * 1024)
 ) u_Controller (
     .clk                (clk_o),
 
